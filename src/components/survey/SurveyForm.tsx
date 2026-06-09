@@ -66,6 +66,26 @@ function countRequired(questions: QuestionView[]): number {
   return questions.filter((q) => q.isRequired).length
 }
 
+// User-facing Spanish copy lives in the presentation layer — the pure
+// validation domain stays language-agnostic. Given a question that the server
+// flagged, render a clear, type-aware message in Spanish.
+function spanishError(q: QuestionView): string {
+  switch (q.type) {
+    case 'single':
+      return 'Elegí una opción para continuar.'
+    case 'multi':
+      return q.maxSelect
+        ? `Seleccioná entre 1 y ${q.maxSelect} opciones.`
+        : 'Seleccioná al menos una opción.'
+    case 'scale':
+      return 'Puntuá todas las filas, del 1 al 5.'
+    case 'open':
+      return 'Esta pregunta es obligatoria.'
+    default:
+      return 'Revisá esta pregunta.'
+  }
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SingleQuestion({
@@ -82,9 +102,11 @@ function SingleQuestion({
   return (
     <div className="opts" data-single="">
       {question.options?.map((opt) => (
+        // NOTE: isControl is a backend-only analysis flag (decoy options).
+        // It MUST NOT be shown to respondents — revealing it defeats the decoy.
         <label
           key={opt.id}
-          className={`opt-row${selected === opt.id ? ' sel' : ''}${opt.isControl ? ' control' : ''}`}
+          className={`opt-row${selected === opt.id ? ' sel' : ''}`}
         >
           <input
             type="radio"
@@ -93,7 +115,6 @@ function SingleQuestion({
             onChange={() => onSelect(opt.id)}
           />
           <span>{opt.text}</span>
-          {opt.isControl && <span className="ctrl-tag">control</span>}
         </label>
       ))}
       {error && <p style={{ color: 'var(--accent)', fontSize: '13px', marginTop: '6px' }}>{error}</p>}
@@ -120,10 +141,11 @@ function MultiQuestion({
       {question.options?.map((opt) => {
         const isChecked = selected.includes(opt.id)
         const isDisabled = atCap && !isChecked
+        // isControl is a backend-only decoy flag — never surfaced to respondents.
         return (
           <label
             key={opt.id}
-            className={`opt-row${isChecked ? ' sel' : ''}${opt.isControl ? ' control' : ''}${isDisabled ? ' disabled' : ''}`}
+            className={`opt-row${isChecked ? ' sel' : ''}${isDisabled ? ' disabled' : ''}`}
           >
             <input
               type="checkbox"
@@ -133,7 +155,6 @@ function MultiQuestion({
               onChange={() => onToggle(opt.id)}
             />
             <span>{opt.text}</span>
-            {opt.isControl && <span className="ctrl-tag">control</span>}
           </label>
         )
       })}
@@ -297,7 +318,18 @@ export function SurveyForm({ view }: Props) {
     if (result.ok) {
       setDone(true)
     } else {
-      setErrors(result.errors ?? {})
+      const errs = result.errors ?? {}
+      setErrors(errs)
+      // Surface the failure where the user can see it: scroll to the first
+      // flagged question (the inline error is otherwise far up the page).
+      const firstErrorId = view.questions.find((q) => errs[q.id])?.id
+      if (firstErrorId && typeof document !== 'undefined') {
+        requestAnimationFrame(() => {
+          document
+            .getElementById(`q-${firstErrorId}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
+      }
     }
 
     setSubmitting(false)
@@ -343,7 +375,7 @@ export function SurveyForm({ view }: Props) {
 
         <div className="qlist">
           {view.questions.map((q, idx) => (
-            <div key={q.id} className="q">
+            <div key={q.id} id={`q-${q.id}`} className="q">
               <div className="q-h">
                 <span className={`q-n${!q.isRequired ? ' opt' : ''}`}>
                   {String(idx + 1).padStart(2, '0')}
@@ -368,7 +400,7 @@ export function SurveyForm({ view }: Props) {
                   question={q}
                   selected={formState[q.id]?.optionIds?.[0]}
                   onSelect={(optionId) => handleSingleSelect(q.id, optionId)}
-                  error={errors[q.id]}
+                  error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
 
@@ -377,7 +409,7 @@ export function SurveyForm({ view }: Props) {
                   question={q}
                   selected={formState[q.id]?.optionIds ?? []}
                   onToggle={(optionId) => handleMultiToggle(q.id, optionId, q.maxSelect)}
-                  error={errors[q.id]}
+                  error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
 
@@ -386,7 +418,7 @@ export function SurveyForm({ view }: Props) {
                   question={q}
                   scaleValues={formState[q.id]?.scaleValues ?? {}}
                   onRate={(rowId, value) => handleScaleRate(q.id, rowId, value)}
-                  error={errors[q.id]}
+                  error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
 
@@ -395,12 +427,31 @@ export function SurveyForm({ view }: Props) {
                   question={q}
                   value={formState[q.id]?.textValue ?? ''}
                   onChange={(text) => handleOpenChange(q.id, text)}
-                  error={errors[q.id]}
+                  error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
             </div>
           ))}
         </div>
+
+        {Object.keys(errors).length > 0 && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            style={{
+              margin: '0 34px',
+              padding: '13px 16px',
+              borderRadius: '11px',
+              border: '1px solid var(--accent)',
+              background: '#FDF3EF',
+              color: 'var(--accent-deep)',
+              fontSize: '14px',
+            }}
+          >
+            <strong>Faltan respuestas o hay datos inválidos.</strong> Revisá las
+            preguntas marcadas en naranja más arriba y volvé a enviar.
+          </div>
+        )}
 
         <div className="panel-foot">
           <span className="progress">

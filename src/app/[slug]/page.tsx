@@ -8,6 +8,7 @@
  * Slug examples: 'compradores', 'agentes'
  * (seeded in WU-6 via scripts/seed.ts)
  */
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getSurveyView } from '@/db/queries/surveyView'
 import { SurveyForm } from '@/components/survey/SurveyForm'
@@ -16,6 +17,14 @@ export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const view = await getSurveyView(slug)
+  return {
+    title: view ? `${view.title} · QHogar` : 'Encuesta · QHogar',
+  }
 }
 
 export default async function SurveyPage({ params }: Props) {

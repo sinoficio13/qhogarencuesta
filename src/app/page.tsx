@@ -5,7 +5,12 @@
  *
  * T-045: app/page.tsx — static selector, two cards linking to survey slugs.
  */
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'QHogar · Elegí tu encuesta',
+}
 
 export default function Home() {
   return (
