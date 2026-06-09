@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     globals: true,
+    // Vitest automatically loads .env and .env.local via Vite's dotenv support
   },
   resolve: {
     alias: {
