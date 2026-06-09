@@ -8,7 +8,17 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     globals: true,
+    // Run all test files in a single fork so integration tests (which share
+    // a DB) don't race against each other's beforeEach truncations.
+    pool: 'forks',
+    singleFork: true,
+    // Point DATABASE_URL at the test DB so Server Actions (which import @/db
+    // at module load time) use the same DB as the test assertions.
+    env: {
+      DATABASE_URL: 'postgres://qhogar:qhogar@localhost:5432/qhogar_test',
+    },
     // Vitest automatically loads .env and .env.local via Vite's dotenv support
+    // (env above overrides those for test runs)
   },
   resolve: {
     alias: {
