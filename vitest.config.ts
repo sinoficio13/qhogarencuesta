@@ -8,6 +8,10 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     globals: true,
+    // Setup file for integration tests: mocks next/cache, next/navigation,
+    // and requireAdminAction so admin server actions can be tested without
+    // a real Next.js request context.
+    setupFiles: ['tests/setup/adminMocks.ts'],
     // Run all test files in a single fork, sequentially, so integration tests
     // (which share a DB) don't race against each other's beforeEach truncations.
     pool: 'forks',

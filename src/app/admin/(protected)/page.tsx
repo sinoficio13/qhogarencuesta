@@ -1,35 +1,246 @@
 /**
- * /admin — Admin panel home page.
+ * /admin — Survey list + create form.
  *
- * requireAdmin() is already called by /admin/layout.tsx (defense-in-depth).
- * This page adds a redundant guard to ensure Server Action authors see the pattern.
- *
- * WU-5 will replace the placeholder content with the actual survey list + CRUD links.
+ * Lists ALL surveys (active and inactive) with:
+ *  - Title, slug, question count, response count, active badge
+ *  - Action links: Editar preguntas, Links, Respuestas, Borrar
+ *  - Toggle active/inactive button
+ * Plus a "Nueva encuesta" form at the top.
  */
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { db } from '@/db'
+import { surveys } from '@/db/schema'
+import { sql } from 'drizzle-orm'
+import { createSurvey, deleteSurvey, toggleActive } from '@/actions/adminSurveys'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+
+// ── Form action wrappers ──────────────────────────────────────────────────────
+// These parse FormData and delegate to the typed action functions.
+// Kept in the page file to avoid mixing form-data parsing into the action module.
+
+async function createSurveyAction(formData: FormData) {
+  'use server'
+  const title = (formData.get('title') as string | null)?.trim() ?? ''
+  const slug = (formData.get('slug') as string | null)?.trim() ?? ''
+  const description = (formData.get('description') as string | null)?.trim() || undefined
+  const metaChipsRaw = (formData.get('metaChipsRaw') as string | null)?.trim() || undefined
+  const noteHtml = (formData.get('noteHtml') as string | null)?.trim() || undefined
+
+  const metaChips = metaChipsRaw
+    ? metaChipsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : undefined
+
+  await createSurvey({ title, slug, description, metaChips, noteHtml })
+  redirect('/admin')
+}
+
+async function deleteSurveyAction(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  await deleteSurvey({ id })
+  redirect('/admin')
+}
+
+async function toggleActiveAction(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  await toggleActive({ id })
+  revalidatePath('/admin')
+}
+
+// ── Page component ─────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  // Defense-in-depth: explicit per-page guard (design §4, CVE-2025-29927)
   await requireAdmin()
 
+  // Fetch all surveys with question and response counts
+  const surveyList = await db
+    .select({
+      id: surveys.id,
+      title: surveys.title,
+      slug: surveys.slug,
+      isActive: surveys.isActive,
+      questionCount: sql<number>`(select count(*) from questions where questions.survey_id = ${surveys.id})::int`,
+      responseCount: sql<number>`(select count(*) from responses where responses.survey_id = ${surveys.id})::int`,
+    })
+    .from(surveys)
+    .orderBy(surveys.createdAt)
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-800">Panel</h1>
-      <p className="text-gray-500 text-sm">
-        WU-5 — Gestión de encuestas se implementará aquí. <br />
-        Por ahora el guard de autenticación está activo y funcionando.
-      </p>
-      <div className="grid grid-cols-2 gap-4 max-w-md">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="font-medium text-gray-700">Compradores</p>
-          <p className="text-sm text-gray-400 mt-1">Próximamente en WU-5</p>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="font-medium text-gray-700">Agentes</p>
-          <p className="text-sm text-gray-400 mt-1">Próximamente en WU-5</p>
-        </div>
+    <div style={{ maxWidth: 900 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-.02em', margin: '0 0 4px', color: 'var(--ink)' }}>
+          Encuestas
+        </h1>
+        <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+          {surveyList.length} encuesta{surveyList.length !== 1 ? 's' : ''} en total
+        </p>
       </div>
+
+      {/* Create survey form */}
+      <details style={{ marginBottom: 32, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', padding: '20px 24px' }}>
+        <summary style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, cursor: 'pointer', color: 'var(--brand-deep)', userSelect: 'none' }}>
+          + Nueva encuesta
+        </summary>
+        <form
+          action={createSurveyAction}
+          style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
+          <label style={labelStyle}>
+            Título *
+            <input name="title" required placeholder="Ej: Encuesta de compradores" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Slug * (URL)
+            <input name="slug" required placeholder="Ej: compradores" style={inputStyle} />
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>Se usará en la URL. Solo letras, números y guiones (se normaliza automáticamente).</span>
+          </label>
+          <label style={labelStyle}>
+            Descripción
+            <input name="description" placeholder="Descripción breve (opcional)" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Chips meta (separados por coma)
+            <input name="metaChipsRaw" placeholder="Ej: Compradores, Propiedades, 2025" style={inputStyle} />
+          </label>
+          <label style={labelStyle}>
+            Nota HTML (se sanitiza)
+            <textarea name="noteHtml" placeholder="Ej: <b>Nota importante</b>: esto es privado" rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }} />
+          </label>
+          <div>
+            <button type="submit" className="btn" style={{ marginTop: 4 }}>
+              Crear encuesta
+            </button>
+          </div>
+        </form>
+      </details>
+
+      {/* Survey list */}
+      {surveyList.length === 0 ? (
+        <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '40px 0' }}>
+          No hay encuestas todavía. Creá la primera arriba.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {surveyList.map((survey) => (
+            <div
+              key={survey.id}
+              style={{
+                border: '1px solid var(--line)',
+                borderRadius: 14,
+                background: 'var(--surface)',
+                padding: '18px 22px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                flexWrap: 'wrap',
+              }}
+            >
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--ink)' }}>
+                    {survey.title}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: '.06em',
+                      textTransform: 'uppercase',
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      border: '1px solid',
+                      borderColor: survey.isActive ? 'var(--brand)' : 'var(--line)',
+                      color: survey.isActive ? 'var(--brand-deep)' : 'var(--muted)',
+                      background: survey.isActive ? '#E9F4F0' : 'transparent',
+                    }}
+                  >
+                    {survey.isActive ? 'Activa' : 'Inactiva'}
+                  </span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted-2)', display: 'flex', gap: 16 }}>
+                  <span>/{survey.slug}</span>
+                  <span>{survey.questionCount} pregunta{survey.questionCount !== 1 ? 's' : ''}</span>
+                  <span>{survey.responseCount} respuesta{survey.responseCount !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                <a href={`/admin/${survey.id}`} style={linkBtnStyle}>
+                  Preguntas
+                </a>
+                <a href={`/admin/${survey.id}/links`} style={linkBtnStyle}>
+                  Links
+                </a>
+                <a href={`/admin/${survey.id}/responses`} style={linkBtnStyle}>
+                  Respuestas
+                </a>
+
+                {/* Toggle active */}
+                <form action={toggleActiveAction} style={{ display: 'inline' }}>
+                  <input type="hidden" name="id" value={survey.id} />
+                  <button type="submit" style={{ ...linkBtnStyle, color: survey.isActive ? 'var(--muted)' : 'var(--brand-deep)' }}>
+                    {survey.isActive ? 'Desactivar' : 'Activar'}
+                  </button>
+                </form>
+
+                {/* Delete */}
+                <form action={deleteSurveyAction} style={{ display: 'inline' }}>
+                  <input type="hidden" name="id" value={survey.id} />
+                  <button
+                    type="submit"
+                    style={{ ...linkBtnStyle, color: '#c0392b', borderColor: '#f5c6c2', background: '#fdf3f2' }}
+                  >
+                    Borrar
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
+}
+
+// ── Inline styles (no shadcn) ─────────────────────────────────────────────────
+
+const labelStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+  fontSize: 14,
+  fontWeight: 500,
+  color: 'var(--ink)',
+}
+
+const inputStyle: React.CSSProperties = {
+  border: '1px solid var(--line)',
+  borderRadius: 10,
+  padding: '10px 13px',
+  fontSize: 15,
+  fontFamily: 'var(--font-body)',
+  color: 'var(--ink)',
+  background: '#fff',
+  outline: 'none',
+}
+
+const linkBtnStyle: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 12,
+  letterSpacing: '.04em',
+  color: 'var(--brand-deep)',
+  background: '#E9F4F0',
+  border: '1px solid #CDE6DD',
+  borderRadius: 8,
+  padding: '5px 11px',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  display: 'inline-block',
+  lineHeight: 1.4,
 }

@@ -39,8 +39,8 @@ test.describe('Admin auth flow', () => {
     await page.fill('input[name="password"]', CORRECT_PASSWORD)
     await page.click('button[type="submit"]')
     await expect(page).toHaveURL(/\/admin(?!\/login)/)
-    // Should see the admin panel placeholder (h1 heading)
-    await expect(page.getByRole('heading', { name: 'Panel' })).toBeVisible()
+    // Should see the admin panel heading
+    await expect(page.getByRole('heading', { name: 'Encuestas' })).toBeVisible()
   })
 
   test('logout clears session and /admin redirects to login', async ({ page }) => {

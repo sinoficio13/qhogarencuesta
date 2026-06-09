@@ -39,6 +39,17 @@ test.describe('Public survey — buyers (preview mode)', () => {
       await checkboxes.nth(i).check()
     }
 
+    // Wait for React to re-render and disable extra checkboxes after reaching cap
+    await page.waitForFunction(
+      ({ selector, expectedMax }: { selector: string; expectedMax: number }) => {
+        const group = document.querySelector(selector)
+        if (!group) return false
+        const checked = group.querySelectorAll('input[type="checkbox"]:checked')
+        return checked.length >= expectedMax
+      },
+      { selector: '[data-max]', expectedMax: maxN },
+    )
+
     const unchecked = multiGroup.locator('input[type="checkbox"]:not(:checked)')
     const uncheckedCount = await unchecked.count()
     for (let i = 0; i < uncheckedCount; i++) {
