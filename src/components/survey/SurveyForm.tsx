@@ -38,6 +38,14 @@ type FormState = Record<string, AnswerState>
 
 interface Props {
   view: SurveyView
+  /** One-time token from /r/[token]. When present, passed to submitSurvey for atomic consume. */
+  token?: string
+  /**
+   * Preview mode — render the form UI but disable submit.
+   * Used by /[slug] (open route) so admins can see the survey without submitting.
+   * Shows a notice: "Vista previa — para responder necesitás tu link personal."
+   */
+  preview?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -237,7 +245,7 @@ function OpenQuestion({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function SurveyForm({ view }: Props) {
+export function SurveyForm({ view, token, preview = false }: Props) {
   const [formState, setFormState] = useState<FormState>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [done, setDone] = useState(false)
@@ -296,7 +304,7 @@ export function SurveyForm({ view }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || preview) return // preview mode: submit button is disabled, but guard here too
     setSubmitting(true)
     setErrors({})
 
@@ -313,6 +321,7 @@ export function SurveyForm({ view }: Props) {
     const result = await submitSurvey({
       surveyId: view.id,
       answers,
+      ...(token ? { token } : {}),
     })
 
     if (result.ok) {
@@ -434,7 +443,27 @@ export function SurveyForm({ view }: Props) {
           ))}
         </div>
 
-        {Object.keys(errors).length > 0 && (
+        {/* _token error: shown when the token was already used or is invalid */}
+        {errors._token && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            style={{
+              margin: '0 34px 12px',
+              padding: '13px 16px',
+              borderRadius: '11px',
+              border: '1px solid var(--accent)',
+              background: '#FDF3EF',
+              color: 'var(--accent-deep)',
+              fontSize: '14px',
+            }}
+          >
+            <strong>Link inválido.</strong> {errors._token}
+          </div>
+        )}
+
+        {/* General validation error banner (question-level errors) */}
+        {Object.keys(errors).some((k) => k !== '_token' && k !== '_db' && k !== '_survey') && (
           <div
             role="alert"
             aria-live="assertive"
@@ -453,14 +482,33 @@ export function SurveyForm({ view }: Props) {
           </div>
         )}
 
-        <div className="panel-foot">
-          <span className="progress">
-            Respondidas <b>{answeredCount}</b> / {requiredCount}
-          </span>
-          <button type="submit" className="btn" disabled={submitting}>
-            {submitting ? 'Enviando…' : 'Enviar respuestas'}
-          </button>
-        </div>
+        {/* Preview mode notice + disabled submit */}
+        {preview ? (
+          <div className="panel-foot">
+            <span
+              style={{
+                fontSize: '13px',
+                color: 'var(--muted-2)',
+                fontStyle: 'italic',
+                flexShrink: 1,
+              }}
+            >
+              Vista previa — para responder necesitás tu link personal.
+            </span>
+            <button type="submit" className="btn" disabled>
+              Enviar respuestas
+            </button>
+          </div>
+        ) : (
+          <div className="panel-foot">
+            <span className="progress">
+              Respondidas <b>{answeredCount}</b> / {requiredCount}
+            </span>
+            <button type="submit" className="btn" disabled={submitting}>
+              {submitting ? 'Enviando…' : 'Enviar respuestas'}
+            </button>
+          </div>
+        )}
       </section>
     </form>
   )

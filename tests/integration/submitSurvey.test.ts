@@ -39,13 +39,11 @@ afterAll(async () => {
 })
 
 beforeEach(async () => {
-  // Clean in dependency order
-  await db.delete(schema.answers)
-  await db.delete(schema.responses)
-  await db.delete(schema.scaleRows)
-  await db.delete(schema.options)
-  await db.delete(schema.questions)
-  await db.delete(schema.surveys)
+  // Clean all tables with CASCADE (handles all FK constraints in one shot)
+  await pool.query(`
+    TRUNCATE TABLE answers, responses, invitations, scale_rows, options, questions, surveys
+    RESTART IDENTITY CASCADE
+  `)
 })
 
 // ── Fixture builder ───────────────────────────────────────────────────────────

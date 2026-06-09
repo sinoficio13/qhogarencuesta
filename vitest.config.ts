@@ -8,10 +8,13 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     globals: true,
-    // Run all test files in a single fork so integration tests (which share
-    // a DB) don't race against each other's beforeEach truncations.
+    // Run all test files in a single fork, sequentially, so integration tests
+    // (which share a DB) don't race against each other's beforeEach truncations.
     pool: 'forks',
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — singleFork is valid at runtime in Vitest 4 but may be missing from type defs
     singleFork: true,
+    fileParallelism: false,
     // Point DATABASE_URL at the test DB so Server Actions (which import @/db
     // at module load time) use the same DB as the test assertions.
     env: {

@@ -54,7 +54,8 @@ export default async function SurveyPage({ params }: Props) {
       </header>
 
       <div className="wrap" style={{ paddingTop: '32px' }}>
-        <SurveyForm view={view} />
+        {/* preview=true: /[slug] is view-only; submits require a personal token link */}
+        <SurveyForm view={view} preview />
       </div>
 
       {/* TODO-confirm: wording pending client approval */}

@@ -29,8 +29,9 @@ test.describe('Admin auth flow', () => {
     await page.click('button[type="submit"]')
     // Should stay on login page
     await expect(page).toHaveURL(/\/admin\/login/)
-    // Should show an error message
-    await expect(page.locator('[role="alert"], .error, [data-error]')).toBeVisible()
+    // Should show an error message — use role="alert" scoped to the form
+    // to avoid matching unrelated elements (Next.js dev toolbar, route announcer)
+    await expect(page.locator('form [role="alert"]')).toBeVisible()
   })
 
   test('correct password redirects to /admin', async ({ page }) => {
