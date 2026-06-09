@@ -1,12 +1,12 @@
 /**
  * Public survey page — RSC.
  *
- * T-044: fetches survey by slug, passes SurveyView to SurveyForm.
- * Uses force-dynamic (design §1) — no ISR in Phase 1.
- * notFound() for unknown or inactive surveys.
+ * PIVOT: /[slug] is THE answerable public link (shareable via WhatsApp / social).
+ * Preview mode removed — respondents enter their identifier directly and submit.
  *
- * Slug examples: 'compradores', 'agentes'
- * (seeded in WU-6 via scripts/seed.ts)
+ * T-044: fetches survey by slug, passes SurveyView to SurveyForm.
+ * Uses force-dynamic — no ISR.
+ * notFound() for unknown or inactive surveys.
  */
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -28,7 +28,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SurveyPage({ params }: Props) {
-  // Next.js 15: params is a Promise — must await (design §1)
   const { slug } = await params
 
   const view = await getSurveyView(slug)
@@ -54,11 +53,9 @@ export default async function SurveyPage({ params }: Props) {
       </header>
 
       <div className="wrap" style={{ paddingTop: '32px' }}>
-        {/* preview=true: /[slug] is view-only; submits require a personal token link */}
-        <SurveyForm view={view} preview />
+        <SurveyForm view={view} />
       </div>
 
-      {/* TODO-confirm: wording pending client approval */}
       <footer className="site">
         QHogar · Encuesta de parte de <strong>Angel Pinto</strong>. Los datos
         son recogidos por QHogar para investigación de mercado interna.

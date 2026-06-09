@@ -33,6 +33,8 @@ export interface CreateSurveyInput {
   description?: string
   metaChips?: string[]
   noteHtml?: string
+  identifierType?: 'email' | 'cedula'
+  identifierLabel?: string
 }
 
 export async function createSurvey(
@@ -67,6 +69,8 @@ export async function createSurvey(
         description: input.description?.trim() ?? null,
         metaChips: input.metaChips ?? null,
         noteHtml,
+        identifierType: input.identifierType ?? 'email',
+        identifierLabel: input.identifierLabel?.trim() || null,
       })
       .returning()
 
@@ -91,6 +95,8 @@ export interface UpdateSurveyInput {
   description?: string
   metaChips?: string[]
   noteHtml?: string
+  identifierType?: 'email' | 'cedula'
+  identifierLabel?: string
 }
 
 export async function updateSurvey(
@@ -104,6 +110,8 @@ export async function updateSurvey(
   if (input.description !== undefined) patch.description = input.description.trim()
   if (input.metaChips !== undefined) patch.metaChips = input.metaChips
   if (input.noteHtml !== undefined) patch.noteHtml = sanitize(input.noteHtml)
+  if (input.identifierType !== undefined) patch.identifierType = input.identifierType
+  if (input.identifierLabel !== undefined) patch.identifierLabel = input.identifierLabel?.trim() || null
 
   if (input.slug !== undefined) {
     const slug = slugify(input.slug)

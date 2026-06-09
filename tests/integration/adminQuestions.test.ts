@@ -37,7 +37,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await pool.query(`
-    TRUNCATE TABLE answers, responses, invitations, scale_rows, options, questions, surveys
+    TRUNCATE TABLE answers, responses, scale_rows, options, questions, surveys
     RESTART IDENTITY CASCADE
   `)
 })

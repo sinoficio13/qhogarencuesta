@@ -42,6 +42,9 @@ export interface SurveyDbRow {
   metaChips: string[] | null
   noteHtml: string | null
   isActive: boolean
+  // PIVOT dedup fields
+  identifierType: string | null
+  identifierLabel: string | null
   questions: DbQuestion[]
 }
 
@@ -79,6 +82,10 @@ export interface SurveyView {
   description: string | null
   metaChips: string[] | null
   noteHtml: string | null
+  /** PIVOT dedup: 'email' | 'cedula' — which identifier to collect */
+  identifierType: 'email' | 'cedula'
+  /** Optional custom label for the identifier field shown in the form */
+  identifierLabel: string | null
   questions: QuestionView[]
 }
 
@@ -128,6 +135,8 @@ export function toSurveyView(row: SurveyDbRow | null): SurveyView | null {
     description: row.description,
     metaChips: row.metaChips,
     noteHtml: row.noteHtml,
+    identifierType: (row.identifierType === 'cedula' ? 'cedula' : 'email') as 'email' | 'cedula',
+    identifierLabel: row.identifierLabel ?? null,
     questions,
   }
 }

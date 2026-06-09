@@ -3,31 +3,39 @@
 /**
  * submitSurvey — Server Action for public survey submission.
  *
- * Flow (design §5 + WU-5 dedup slice):
- *  1. Re-fetch authoritative survey structure from DB by surveyId.
- *  2. Run validateSubmit (pure, trusted structure from DB — never client shape).
- *  3. On validation failure → return typed errors immediately (no DB writes).
- *  4. On success → mapAnswersToInsert, then run ONE db.transaction():
- *     a. If token provided: UPDATE invitations SET used_at=now()
- *        WHERE token=? AND used_at IS NULL AND survey_id=?  RETURNING id
- *        → If 0 rows returned: rollback, return _token error (already used / invalid / wrong survey).
- *     b. Insert response (with invitationId when token was valid).
- *     c. Bulk-insert answers.
- *  5. Return { ok: true } on success or { ok: false, errors } on failure.
+ * PIVOT (identifier-based dedup, replaces one-time tokens):
  *
- * Backward-safe: token is OPTIONAL. Submissions from /[slug] (preview-only) don't
- * pass a token; those produce responses with invitationId = NULL.
+ * Flow:
+ *  1. Re-fetch authoritative survey structure from DB by surveyId.
+ *  2. Validate the identifier (validateIdentifier per survey's identifierType).
+ *     On invalid → return {ok:false, errors:{_identifier:'...'}} immediately.
+ *  3. Run validateSubmit (pure) on answers.
+ *     On invalid → return {ok:false, errors:{...}} immediately.
+ *  4. Hash the identifier (hashIdentifier — deterministic SHA-256 + pepper).
+ *  5. Atomic db.transaction():
+ *     a. Insert response with identifierHash.
+ *     b. Bulk-insert answers.
+ *     Race-safe: partial unique index (surveyId, identifierHash) WHERE NOT NULL
+ *     catches duplicate submissions → catch unique violation → return _identifier error.
+ *  6. Return { ok: true } on success.
+ *
+ * Error codes:
+ *  - _identifier: invalid format or already-submitted (dedup)
+ *  - _survey: survey not found / inactive
+ *  - _db: unexpected DB error
  *
  * revalidatePath intentionally omitted — responses are not displayed publicly.
  */
 
 import { db } from '@/db'
-import { responses, answers, surveys, invitations } from '@/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { responses, answers, surveys } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { validateSubmit } from '@/lib/validation/submit'
 import { mapAnswersToInsert } from '@/lib/dto/answerMapper'
 import { toSurveyView } from '@/lib/dto/surveyShape'
+import { validateIdentifier, hashIdentifier } from '@/lib/identifier'
 import type { SubmitPayload } from '@/lib/validation/submit'
+import type { IdentifierType } from '@/lib/identifier'
 
 // ── Return types ──────────────────────────────────────────────────────────────
 
@@ -42,15 +50,18 @@ export interface SubmitFailure {
 
 export type SubmitResult = SubmitSuccess | SubmitFailure
 
-// ── Extended payload (adds optional token) ────────────────────────────────────
+// ── Extended payload (adds required identifier) ───────────────────────────────
 
-export interface SubmitPayloadWithToken extends SubmitPayload {
-  token?: string
+export interface SubmitPayloadWithIdentifier extends SubmitPayload {
+  /** Raw identifier entered by the respondent (email or cédula, not hashed) */
+  identifier: string
 }
 
 // ── Action ────────────────────────────────────────────────────────────────────
 
-export async function submitSurvey(payload: SubmitPayloadWithToken): Promise<SubmitResult> {
+export async function submitSurvey(
+  payload: SubmitPayloadWithIdentifier,
+): Promise<SubmitResult> {
   // 1. Re-fetch authoritative survey structure from DB (never trust client ids)
   const surveyRow = await db.query.surveys.findFirst({
     where: eq(surveys.id, payload.surveyId),
@@ -72,17 +83,26 @@ export async function submitSurvey(payload: SubmitPayloadWithToken): Promise<Sub
   if (!surveyRow || !surveyRow.isActive) {
     return {
       ok: false,
-      errors: { _survey: 'Survey not found or not active.' },
+      errors: { _survey: 'Encuesta no encontrada o no activa.' },
     }
   }
 
-  // Build SurveyView DTO → then derive SurveyStructure for validation
-  const surveyView = toSurveyView(surveyRow)
-  if (!surveyView) {
-    return { ok: false, errors: { _survey: 'Survey data unavailable.' } }
+  // 2. Validate identifier format BEFORE touching the DB
+  const identifierType = surveyRow.identifierType as IdentifierType
+  const identifierValidation = validateIdentifier(identifierType, payload.identifier)
+  if (!identifierValidation.ok) {
+    return {
+      ok: false,
+      errors: { _identifier: identifierValidation.error },
+    }
   }
 
-  // Build the structure shape expected by validateSubmit
+  // 3. Build SurveyView DTO → derive SurveyStructure for answer validation
+  const surveyView = toSurveyView(surveyRow)
+  if (!surveyView) {
+    return { ok: false, errors: { _survey: 'Datos de encuesta no disponibles.' } }
+  }
+
   const structure = {
     id: surveyView.id,
     questions: surveyView.questions.map((q) => ({
@@ -96,76 +116,72 @@ export async function submitSurvey(payload: SubmitPayloadWithToken): Promise<Sub
     })),
   }
 
-  // 2. Validate (pure — uses authoritative DB structure)
+  // 4. Validate answers (pure — uses authoritative DB structure)
   const validation = validateSubmit(structure, payload)
-
   if (!validation.ok) {
     return { ok: false, errors: validation.errors }
   }
 
-  // 3. Atomic transaction: optionally consume token, insert response + answers
+  // 5. Hash the identifier (deterministic, pepper-keyed)
+  const identifierHash = await hashIdentifier(identifierType, payload.identifier)
+
+  // 6. Atomic transaction: insert response + answers
   try {
-    let tokenError: string | null = null
-
     await db.transaction(async (tx) => {
-      let invitationId: string | null = null
-
-      // ── Token consume (atomic, race-safe) ──────────────────────────────────
-      if (payload.token) {
-        // UPDATE...RETURNING: returns the row only if it was unused AND belongs
-        // to this exact survey. 0 rows → already used, invalid, or wrong survey.
-        const consumed = await tx
-          .update(invitations)
-          .set({ usedAt: new Date() })
-          .where(
-            and(
-              eq(invitations.token, payload.token),
-              eq(invitations.surveyId, payload.surveyId),
-              isNull(invitations.usedAt)
-            )
-          )
-          .returning()
-
-        if (consumed.length === 0) {
-          // Signal rollback via error — Drizzle rolls back on thrown errors
-          tokenError = 'Este link ya fue usado o no es válido.'
-          throw new Error('TOKEN_CONSUMED')
-        }
-
-        invitationId = consumed[0].id
-      }
-
-      // ── Insert response ────────────────────────────────────────────────────
+      // Insert response with identifierHash
+      // Partial unique index (survey_id, identifier_hash) WHERE NOT NULL
+      // will reject duplicates at the DB level if there's a race.
       const [resp] = await tx
         .insert(responses)
         .values({
           surveyId: surveyView.id,
-          ...(invitationId ? { invitationId } : {}),
+          identifierHash,
         })
         .returning()
 
-      // ── Bulk-insert answers ────────────────────────────────────────────────
+      // Bulk-insert answers
       const answerRows = mapAnswersToInsert(resp.id, structure, payload)
       if (answerRows.length > 0) {
         await tx.insert(answers).values(answerRows)
       }
     })
-
-    if (tokenError) {
-      return { ok: false, errors: { _token: tokenError } }
-    }
   } catch (err) {
-    // Token error is surfaced via tokenError above after the transaction throws
-    if (err instanceof Error && err.message === 'TOKEN_CONSUMED') {
+    // Unique-violation: same identifier already submitted for this survey
+    // PostgreSQL error code 23505 = unique_violation
+    // The error may be a DrizzleQueryError wrapping a pg Error, so check both
+    // the top-level message and the nested cause for the PG error code.
+    const msg = err instanceof Error ? err.message : String(err)
+    const causeMsg = (err instanceof Error && err.cause instanceof Error)
+      ? err.cause.message
+      : ''
+    // Access pg's code field if it exists (via cause or direct property)
+    const errCode =
+      (err as { code?: string }).code ??
+      ((err instanceof Error && err.cause) ? (err.cause as { code?: string }).code : undefined) ??
+      ''
+    const isUniqueViolation =
+      errCode === '23505' ||
+      msg.includes('responses_survey_identifier_uq') ||
+      causeMsg.includes('responses_survey_identifier_uq') ||
+      causeMsg.includes('23505')
+
+    if (isUniqueViolation) {
+      const label =
+        identifierType === 'email' ? 'email' : 'cédula'
       return {
         ok: false,
-        errors: { _token: 'Este link ya fue usado o no es válido.' },
+        errors: {
+          _identifier: `Ya registramos una respuesta con este ${label}.`,
+        },
       }
     }
+
     console.error('[submitSurvey] DB error:', err)
     return {
       ok: false,
-      errors: { _db: 'An error occurred while saving your response. Please try again.' },
+      errors: {
+        _db: 'Ocurrió un error al guardar la respuesta. Por favor intentá de nuevo.',
+      },
     }
   }
 

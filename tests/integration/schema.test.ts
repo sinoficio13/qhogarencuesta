@@ -29,8 +29,9 @@ beforeAll(async () => {
   await migrate(db, { migrationsFolder: './drizzle' })
 
   // Clean all tables with CASCADE (handles all FK constraints in one shot)
+  // Note: invitations table was removed in pivot migration 0002_pivot_dedup
   await pool.query(`
-    TRUNCATE TABLE answers, responses, invitations, scale_rows, options, questions, surveys
+    TRUNCATE TABLE answers, responses, scale_rows, options, questions, surveys
     RESTART IDENTITY CASCADE
   `)
 }, 30_000)

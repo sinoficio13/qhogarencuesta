@@ -37,6 +37,11 @@ export const surveys = pgTable('surveys', {
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
+  // PIVOT dedup: admin configures which identifier respondents provide
+  identifierType: text('identifier_type', { enum: ['email', 'cedula'] })
+    .notNull()
+    .default('email'),
+  identifierLabel: text('identifier_label'), // nullable — custom label shown in form
 })
 
 // ─── questions ────────────────────────────────────────────────────────────────
@@ -111,30 +116,10 @@ export const scaleRows = pgTable(
   ]
 )
 
-// ─── invitations ─────────────────────────────────────────────────────────────
-// One-time personal links for dedup (WU-5).
-// Each row represents a single invitation; token is the URL segment (/r/<token>).
-// usedAt is set atomically when a response is submitted — prevents double-submit.
-
-export const invitations = pgTable(
-  'invitations',
-  {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-    surveyId: uuid('survey_id')
-      .notNull()
-      .references(() => surveys.id, { onDelete: 'cascade' }),
-    token: text('token').notNull().unique(),
-    label: text('label'), // nullable — admin note / recipient name
-    usedAt: timestamp('used_at', { withTimezone: true }), // null = not yet used
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (t) => [
-    index('invitations_token_idx').on(t.token),
-    index('invitations_survey_idx').on(t.surveyId),
-  ]
-)
+// ─── (invitations table removed — PIVOT to identifier-based dedup) ───────────
+// The one-time token system (invitations table + /r/[token] route) is retired.
+// Dedup is now enforced via a partial unique index on (surveyId, identifierHash)
+// in the responses table. See migration 0002_pivot_dedup.sql.
 
 // ─── responses ───────────────────────────────────────────────────────────────
 
@@ -145,17 +130,23 @@ export const responses = pgTable(
     surveyId: uuid('survey_id')
       .notNull()
       .references(() => surveys.id),
-    // invitationId links which one-time token produced this response (nullable
-    // for backward-compat: open /[slug] route or pre-token responses have NULL)
-    invitationId: uuid('invitation_id').references(() => invitations.id, {
-      onDelete: 'set null',
-    }),
+    // PIVOT dedup: SHA-256(pepper + ':' + type + ':' + normalizedIdentifier)
+    // NULL allowed for backward-compat with any pre-pivot responses.
+    // Uniqueness enforced via partial unique index below (WHERE NOT NULL).
+    identifierHash: text('identifier_hash'),
     submittedAt: timestamp('submitted_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
     respondentMeta: jsonb('respondent_meta').$type<Record<string, unknown>>(),
   },
-  (t) => [index('responses_survey_idx').on(t.surveyId)]
+  (t) => [
+    index('responses_survey_idx').on(t.surveyId),
+    // Partial unique index: one response per identifier per survey.
+    // WHERE clause means NULL identifiers (pre-pivot rows) are not constrained.
+    uniqueIndex('responses_survey_identifier_uq')
+      .on(t.surveyId, t.identifierHash)
+      .where(sql`${t.identifierHash} IS NOT NULL`),
+  ]
 )
 
 // ─── answers ─────────────────────────────────────────────────────────────────

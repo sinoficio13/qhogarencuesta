@@ -40,8 +40,9 @@ afterAll(async () => {
 
 beforeEach(async () => {
   // Clean all tables with CASCADE (handles all FK constraints in one shot)
+  // Note: invitations table was removed in pivot migration 0002_pivot_dedup
   await pool.query(`
-    TRUNCATE TABLE answers, responses, invitations, scale_rows, options, questions, surveys
+    TRUNCATE TABLE answers, responses, scale_rows, options, questions, surveys
     RESTART IDENTITY CASCADE
   `)
 })
@@ -113,6 +114,7 @@ describe('submitSurvey: happy path', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'happy@example.com',
       answers: [
         { questionId: q1.id, optionIds: [q1o1.id] },
         { questionId: q2.id, optionIds: [q2o1.id, q2o2.id] },
@@ -139,6 +141,7 @@ describe('submitSurvey: happy path', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'happy-open@example.com',
       answers: [
         { questionId: q1.id, optionIds: [q1o1.id] },
         { questionId: q2.id, optionIds: [q2o1.id] },
@@ -164,6 +167,7 @@ describe('submitSurvey: validation rejection — no DB rows on failure', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'missing@example.com',
       answers: [
         // Q1 (single, required) is missing entirely
         { questionId: q2.id, optionIds: [q2o1.id] },
@@ -188,6 +192,7 @@ describe('submitSurvey: validation rejection — no DB rows on failure', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'overcap@example.com',
       answers: [
         { questionId: q1.id, optionIds: [q1o1.id] },
         // Q2 has maxSelect=2 but we send 3
@@ -214,6 +219,7 @@ describe('submitSurvey: validation rejection — no DB rows on failure', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'cross@example.com',
       answers: [
         // Use an option id from a different survey's question
         { questionId: q1.id, optionIds: [other.q1o1.id] },
@@ -235,6 +241,7 @@ describe('submitSurvey: validation rejection — no DB rows on failure', () => {
 
     const result = await submitSurvey({
       surveyId: survey.id,
+      identifier: 'scale@example.com',
       answers: [
         { questionId: q1.id, optionIds: [q1o1.id] },
         { questionId: q2.id, optionIds: [q2o1.id] },

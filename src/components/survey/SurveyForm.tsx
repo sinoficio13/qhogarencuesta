@@ -3,8 +3,11 @@
 /**
  * SurveyForm — Client Component for public survey rendering and submission.
  *
- * T-046: receives SurveyView (from RSC), renders all question types,
- * calls submitSurvey Server Action on submit.
+ * PIVOT (identifier-based dedup):
+ *  - The identifier field (email or cédula) is the FIRST field of the form.
+ *  - `token` and `preview` props removed — /[slug] is now fully answerable.
+ *  - Identifier included in submit payload.
+ *  - _identifier error surfaced prominently (same banner pattern as other errors).
  *
  * Interactions:
  *  - single: radio — exactly one selection
@@ -19,18 +22,15 @@
  * dangerouslySetInnerHTML: ONLY on sanitized labelHtml / noteHtml fields.
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { submitSurvey } from '@/actions/submitSurvey'
 import type { SurveyView, QuestionView } from '@/lib/dto/surveyShape'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface AnswerState {
-  // For single/multi: array of selected option ids
   optionIds?: string[]
-  // For scale: map rowId → value 1..5
   scaleValues?: Record<string, number>
-  // For open: text string
   textValue?: string
 }
 
@@ -38,14 +38,6 @@ type FormState = Record<string, AnswerState>
 
 interface Props {
   view: SurveyView
-  /** One-time token from /r/[token]. When present, passed to submitSurvey for atomic consume. */
-  token?: string
-  /**
-   * Preview mode — render the form UI but disable submit.
-   * Used by /[slug] (open route) so admins can see the survey without submitting.
-   * Shows a notice: "Vista previa — para responder necesitás tu link personal."
-   */
-  preview?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -53,7 +45,7 @@ interface Props {
 function countAnswered(questions: QuestionView[], formState: FormState): number {
   let answered = 0
   for (const q of questions) {
-    if (!q.isRequired) continue // optional — not counted
+    if (!q.isRequired) continue
     const a = formState[q.id]
     if (!a) continue
 
@@ -74,9 +66,6 @@ function countRequired(questions: QuestionView[]): number {
   return questions.filter((q) => q.isRequired).length
 }
 
-// User-facing Spanish copy lives in the presentation layer — the pure
-// validation domain stays language-agnostic. Given a question that the server
-// flagged, render a clear, type-aware message in Spanish.
 function spanishError(q: QuestionView): string {
   switch (q.type) {
     case 'single':
@@ -97,31 +86,16 @@ function spanishError(q: QuestionView): string {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SingleQuestion({
-  question,
-  selected,
-  onSelect,
-  error,
+  question, selected, onSelect, error,
 }: {
-  question: QuestionView
-  selected: string | undefined
-  onSelect: (optionId: string) => void
-  error?: string
+  question: QuestionView; selected: string | undefined
+  onSelect: (optionId: string) => void; error?: string
 }) {
   return (
     <div className="opts" data-single="">
       {question.options?.map((opt) => (
-        // NOTE: isControl is a backend-only analysis flag (decoy options).
-        // It MUST NOT be shown to respondents — revealing it defeats the decoy.
-        <label
-          key={opt.id}
-          className={`opt-row${selected === opt.id ? ' sel' : ''}`}
-        >
-          <input
-            type="radio"
-            name={question.id}
-            checked={selected === opt.id}
-            onChange={() => onSelect(opt.id)}
-          />
+        <label key={opt.id} className={`opt-row${selected === opt.id ? ' sel' : ''}`}>
+          <input type="radio" name={question.id} checked={selected === opt.id} onChange={() => onSelect(opt.id)} />
           <span>{opt.text}</span>
         </label>
       ))}
@@ -131,15 +105,10 @@ function SingleQuestion({
 }
 
 function MultiQuestion({
-  question,
-  selected,
-  onToggle,
-  error,
+  question, selected, onToggle, error,
 }: {
-  question: QuestionView
-  selected: string[]
-  onToggle: (optionId: string) => void
-  error?: string
+  question: QuestionView; selected: string[]
+  onToggle: (optionId: string) => void; error?: string
 }) {
   const maxSelect = question.maxSelect
   const atCap = maxSelect !== null && maxSelect !== undefined && selected.length >= maxSelect
@@ -149,19 +118,9 @@ function MultiQuestion({
       {question.options?.map((opt) => {
         const isChecked = selected.includes(opt.id)
         const isDisabled = atCap && !isChecked
-        // isControl is a backend-only decoy flag — never surfaced to respondents.
         return (
-          <label
-            key={opt.id}
-            className={`opt-row${isChecked ? ' sel' : ''}${isDisabled ? ' disabled' : ''}`}
-          >
-            <input
-              type="checkbox"
-              name={question.id}
-              checked={isChecked}
-              disabled={isDisabled}
-              onChange={() => onToggle(opt.id)}
-            />
+          <label key={opt.id} className={`opt-row${isChecked ? ' sel' : ''}${isDisabled ? ' disabled' : ''}`}>
+            <input type="checkbox" name={question.id} checked={isChecked} disabled={isDisabled} onChange={() => onToggle(opt.id)} />
             <span>{opt.text}</span>
           </label>
         )
@@ -172,15 +131,10 @@ function MultiQuestion({
 }
 
 function ScaleQuestion({
-  question,
-  scaleValues,
-  onRate,
-  error,
+  question, scaleValues, onRate, error,
 }: {
-  question: QuestionView
-  scaleValues: Record<string, number>
-  onRate: (rowId: string, value: number) => void
-  error?: string
+  question: QuestionView; scaleValues: Record<string, number>
+  onRate: (rowId: string, value: number) => void; error?: string
 }) {
   return (
     <>
@@ -191,21 +145,11 @@ function ScaleQuestion({
       <div className="scale" data-scale="">
         {question.scaleRows?.map((row) => (
           <div key={row.id} className="scale-row">
-            {/* dangerouslySetInnerHTML ONLY on sanitized labelHtml (sanitized at write time) */}
-            <span
-              className="label"
-              dangerouslySetInnerHTML={{ __html: row.labelHtml }}
-            />
+            <span className="label" dangerouslySetInnerHTML={{ __html: row.labelHtml }} />
             <div className="dots">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`dot${scaleValues[row.id] === n ? ' on' : ''}`}
-                  onClick={() => onRate(row.id, n)}
-                  aria-label={`${n}`}
-                  aria-pressed={scaleValues[row.id] === n}
-                >
+                <button key={n} type="button" className={`dot${scaleValues[row.id] === n ? ' on' : ''}`}
+                  onClick={() => onRate(row.id, n)} aria-label={`${n}`} aria-pressed={scaleValues[row.id] === n}>
                   {n}
                 </button>
               ))}
@@ -219,25 +163,15 @@ function ScaleQuestion({
 }
 
 function OpenQuestion({
-  question,
-  value,
-  onChange,
-  error,
+  question, value, onChange, error,
 }: {
-  question: QuestionView
-  value: string
-  onChange: (text: string) => void
-  error?: string
+  question: QuestionView; value: string
+  onChange: (text: string) => void; error?: string
 }) {
   return (
     <>
-      <textarea
-        name={question.id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Tu respuesta…"
-        rows={3}
-      />
+      <textarea name={question.id} value={value} onChange={(e) => onChange(e.target.value)}
+        placeholder="Tu respuesta…" rows={3} />
       {error && <p style={{ color: 'var(--accent)', fontSize: '13px', marginTop: '6px', marginLeft: '50px' }}>{error}</p>}
     </>
   )
@@ -245,7 +179,8 @@ function OpenQuestion({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function SurveyForm({ view, token, preview = false }: Props) {
+export function SurveyForm({ view }: Props) {
+  const [identifier, setIdentifier] = useState('')
   const [formState, setFormState] = useState<FormState>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [done, setDone] = useState(false)
@@ -254,13 +189,17 @@ export function SurveyForm({ view, token, preview = false }: Props) {
   const requiredCount = countRequired(view.questions)
   const answeredCount = countAnswered(view.questions, formState)
 
+  // Identifier field config
+  const identifierType = view.identifierType
+  const identifierLabel =
+    view.identifierLabel ||
+    (identifierType === 'email' ? 'Email' : 'Cédula')
+  const identifierInputType = identifierType === 'email' ? 'email' : 'text'
+
   // ── State updaters ────────────────────────────────────────────────────────
 
   const handleSingleSelect = useCallback((questionId: string, optionId: string) => {
-    setFormState((prev) => ({
-      ...prev,
-      [questionId]: { optionIds: [optionId] },
-    }))
+    setFormState((prev) => ({ ...prev, [questionId]: { optionIds: [optionId] } }))
     setErrors((prev) => { const e = { ...prev }; delete e[questionId]; return e })
   }, [])
 
@@ -271,9 +210,7 @@ export function SurveyForm({ view, token, preview = false }: Props) {
       if (current.includes(optionId)) {
         next = current.filter((id) => id !== optionId)
       } else {
-        if (maxSelect !== null && current.length >= maxSelect) {
-          return prev // already at cap — ignore
-        }
+        if (maxSelect !== null && current.length >= maxSelect) return prev
         next = [...current, optionId]
       }
       return { ...prev, [questionId]: { optionIds: next } }
@@ -284,19 +221,13 @@ export function SurveyForm({ view, token, preview = false }: Props) {
   const handleScaleRate = useCallback((questionId: string, rowId: string, value: number) => {
     setFormState((prev) => {
       const current = prev[questionId]?.scaleValues ?? {}
-      return {
-        ...prev,
-        [questionId]: { scaleValues: { ...current, [rowId]: value } },
-      }
+      return { ...prev, [questionId]: { scaleValues: { ...current, [rowId]: value } } }
     })
     setErrors((prev) => { const e = { ...prev }; delete e[questionId]; return e })
   }, [])
 
   const handleOpenChange = useCallback((questionId: string, text: string) => {
-    setFormState((prev) => ({
-      ...prev,
-      [questionId]: { textValue: text },
-    }))
+    setFormState((prev) => ({ ...prev, [questionId]: { textValue: text } }))
     setErrors((prev) => { const e = { ...prev }; delete e[questionId]; return e })
   }, [])
 
@@ -304,11 +235,18 @@ export function SurveyForm({ view, token, preview = false }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitting || preview) return // preview mode: submit button is disabled, but guard here too
+    if (submitting) return
+
+    // Client-side: basic required check on identifier
+    if (!identifier.trim()) {
+      setErrors({ _identifier: `${identifierLabel} es obligatorio.` })
+      return
+    }
+
     setSubmitting(true)
     setErrors({})
 
-    const answers = view.questions.map((q) => {
+    const answerList = view.questions.map((q) => {
       const a = formState[q.id]
       return {
         questionId: q.id,
@@ -320,8 +258,8 @@ export function SurveyForm({ view, token, preview = false }: Props) {
 
     const result = await submitSurvey({
       surveyId: view.id,
-      answers,
-      ...(token ? { token } : {}),
+      identifier: identifier.trim(),
+      answers: answerList,
     })
 
     if (result.ok) {
@@ -329,15 +267,25 @@ export function SurveyForm({ view, token, preview = false }: Props) {
     } else {
       const errs = result.errors ?? {}
       setErrors(errs)
-      // Surface the failure where the user can see it: scroll to the first
-      // flagged question (the inline error is otherwise far up the page).
-      const firstErrorId = view.questions.find((q) => errs[q.id])?.id
-      if (firstErrorId && typeof document !== 'undefined') {
-        requestAnimationFrame(() => {
-          document
-            .getElementById(`q-${firstErrorId}`)
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        })
+
+      // Scroll to first flagged question; if _identifier error, scroll to top of form
+      if (errs._identifier) {
+        if (typeof document !== 'undefined') {
+          requestAnimationFrame(() => {
+            document
+              .getElementById('survey-identifier-field')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          })
+        }
+      } else {
+        const firstErrorId = view.questions.find((q) => errs[q.id])?.id
+        if (firstErrorId && typeof document !== 'undefined') {
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`q-${firstErrorId}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          })
+        }
       }
     }
 
@@ -377,12 +325,54 @@ export function SurveyForm({ view, token, preview = false }: Props) {
             </div>
           )}
           {view.noteHtml && (
-            /* dangerouslySetInnerHTML ONLY on sanitized noteHtml */
             <div className="note" dangerouslySetInnerHTML={{ __html: view.noteHtml }} />
           )}
         </div>
 
         <div className="qlist">
+          {/* Identifier field — FIRST field of the form */}
+          <div id="survey-identifier-field" className="q">
+            <div className="q-h">
+              <span className="q-n">00</span>
+              <span className="q-t">{identifierLabel}</span>
+            </div>
+            <div style={{ paddingLeft: '50px', paddingRight: '16px', marginTop: '10px' }}>
+              <input
+                type={identifierInputType}
+                value={identifier}
+                onChange={(e) => {
+                  setIdentifier(e.target.value)
+                  setErrors((prev) => { const er = { ...prev }; delete er._identifier; return er })
+                }}
+                placeholder={
+                  identifierType === 'email'
+                    ? 'nombre@dominio.com'
+                    : 'Tu número de cédula'
+                }
+                required
+                autoComplete={identifierType === 'email' ? 'email' : 'off'}
+                style={{
+                  border: errors._identifier ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+                  borderRadius: 10,
+                  padding: '10px 13px',
+                  fontSize: 15,
+                  fontFamily: 'var(--font-body)',
+                  color: 'var(--ink)',
+                  background: '#fff',
+                  outline: 'none',
+                  width: '100%',
+                  maxWidth: 340,
+                  boxSizing: 'border-box',
+                }}
+              />
+              {errors._identifier && (
+                <p style={{ color: 'var(--accent)', fontSize: '13px', marginTop: '6px' }}>
+                  {errors._identifier}
+                </p>
+              )}
+            </div>
+          </div>
+
           {view.questions.map((q, idx) => (
             <div key={q.id} id={`q-${q.id}`} className="q">
               <div className="q-h">
@@ -397,12 +387,8 @@ export function SurveyForm({ view, token, preview = false }: Props) {
                 </span>
               </div>
 
-              {q.hint && !q.hintWhy && (
-                <div className="q-hint">{q.hint}</div>
-              )}
-              {q.hintWhy && (
-                <div className="q-hint why">{q.hintWhy}</div>
-              )}
+              {q.hint && !q.hintWhy && <div className="q-hint">{q.hint}</div>}
+              {q.hintWhy && <div className="q-hint why">{q.hintWhy}</div>}
 
               {q.type === 'single' && (
                 <SingleQuestion
@@ -412,7 +398,6 @@ export function SurveyForm({ view, token, preview = false }: Props) {
                   error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
-
               {q.type === 'multi' && (
                 <MultiQuestion
                   question={q}
@@ -421,7 +406,6 @@ export function SurveyForm({ view, token, preview = false }: Props) {
                   error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
-
               {q.type === 'scale' && (
                 <ScaleQuestion
                   question={q}
@@ -430,7 +414,6 @@ export function SurveyForm({ view, token, preview = false }: Props) {
                   error={errors[q.id] ? spanishError(q) : undefined}
                 />
               )}
-
               {q.type === 'open' && (
                 <OpenQuestion
                   question={q}
@@ -443,27 +426,8 @@ export function SurveyForm({ view, token, preview = false }: Props) {
           ))}
         </div>
 
-        {/* _token error: shown when the token was already used or is invalid */}
-        {errors._token && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            style={{
-              margin: '0 34px 12px',
-              padding: '13px 16px',
-              borderRadius: '11px',
-              border: '1px solid var(--accent)',
-              background: '#FDF3EF',
-              color: 'var(--accent-deep)',
-              fontSize: '14px',
-            }}
-          >
-            <strong>Link inválido.</strong> {errors._token}
-          </div>
-        )}
-
         {/* General validation error banner (question-level errors) */}
-        {Object.keys(errors).some((k) => k !== '_token' && k !== '_db' && k !== '_survey') && (
+        {Object.keys(errors).some((k) => k !== '_identifier' && k !== '_db' && k !== '_survey') && (
           <div
             role="alert"
             aria-live="assertive"
@@ -482,33 +446,33 @@ export function SurveyForm({ view, token, preview = false }: Props) {
           </div>
         )}
 
-        {/* Preview mode notice + disabled submit */}
-        {preview ? (
-          <div className="panel-foot">
-            <span
-              style={{
-                fontSize: '13px',
-                color: 'var(--muted-2)',
-                fontStyle: 'italic',
-                flexShrink: 1,
-              }}
-            >
-              Vista previa — para responder necesitás tu link personal.
-            </span>
-            <button type="submit" className="btn" disabled>
-              Enviar respuestas
-            </button>
-          </div>
-        ) : (
-          <div className="panel-foot">
-            <span className="progress">
-              Respondidas <b>{answeredCount}</b> / {requiredCount}
-            </span>
-            <button type="submit" className="btn" disabled={submitting}>
-              {submitting ? 'Enviando…' : 'Enviar respuestas'}
-            </button>
+        {/* _db error */}
+        {errors._db && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            style={{
+              margin: '0 34px 12px',
+              padding: '13px 16px',
+              borderRadius: '11px',
+              border: '1px solid var(--accent)',
+              background: '#FDF3EF',
+              color: 'var(--accent-deep)',
+              fontSize: '14px',
+            }}
+          >
+            {errors._db}
           </div>
         )}
+
+        <div className="panel-foot">
+          <span className="progress">
+            Respondidas <b>{answeredCount}</b> / {requiredCount}
+          </span>
+          <button type="submit" className="btn" disabled={submitting}>
+            {submitting ? 'Enviando…' : 'Enviar respuestas'}
+          </button>
+        </div>
       </section>
     </form>
   )

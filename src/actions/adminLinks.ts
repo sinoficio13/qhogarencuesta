@@ -1,66 +1,51 @@
 'use server'
 
 /**
- * Admin server actions — invitation link generation + listing.
+ * Admin server actions — link sharing (PIVOT: single public link, no tokens).
+ *
+ * The invitation/token system was retired. This module now only exposes
+ * getShareInfo to retrieve the public URL and response count for a survey.
  *
  * Guard: requireAdminAction() FIRST on every action (CVE-2025-29927 defense).
- * Token: generated via lib/token.ts (URL-safe, 60-bit entropy).
  */
 
 import 'server-only'
-import { revalidatePath } from 'next/cache'
-import { eq, desc } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import { db } from '@/db'
-import { invitations } from '@/db/schema'
+import { surveys, responses } from '@/db/schema'
 import { requireAdminAction } from '@/lib/auth/requireAdmin'
-import { generateToken } from '@/lib/token'
 import type { ActionResult } from './adminSurveys'
 
-// ── generateLinks ─────────────────────────────────────────────────────────────
+// ── getShareInfo ──────────────────────────────────────────────────────────────
 
-export interface GenerateLinksInput {
-  surveyId: string
-  count: number
-  label?: string
+export interface ShareInfo {
+  slug: string
+  publicUrl: string
+  responseCount: number
 }
 
-export async function generateLinks(
-  input: GenerateLinksInput,
-): Promise<ActionResult<{ count: number }>> {
+export async function getShareInfo(
+  input: { surveyId: string },
+): Promise<ActionResult<ShareInfo>> {
   await requireAdminAction()
 
-  if (input.count < 1 || input.count > 500) {
-    return { ok: false, errors: { count: 'La cantidad debe estar entre 1 y 500.' } }
+  const [survey] = await db
+    .select({ slug: surveys.slug })
+    .from(surveys)
+    .where(eq(surveys.id, input.surveyId))
+    .limit(1)
+
+  if (!survey) {
+    return { ok: false, errors: { surveyId: 'Encuesta no encontrada.' } }
   }
 
-  const rows = Array.from({ length: input.count }, () => ({
-    surveyId: input.surveyId,
-    token: generateToken(),
-    label: input.label ?? null,
-  }))
+  const [{ value: responseCount }] = await db
+    .select({ value: count() })
+    .from(responses)
+    .where(eq(responses.surveyId, input.surveyId))
 
-  await db.insert(invitations).values(rows)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const publicUrl = `${baseUrl}/${survey.slug}`
 
-  revalidatePath(`/admin/${input.surveyId}/links`)
-  return { ok: true, count: input.count }
-}
-
-// ── listInvitations ───────────────────────────────────────────────────────────
-
-export interface ListInvitationsInput {
-  surveyId: string
-}
-
-export async function listInvitations(
-  input: ListInvitationsInput,
-): Promise<ActionResult<{ invitations: (typeof invitations.$inferSelect)[] }>> {
-  await requireAdminAction()
-
-  const rows = await db
-    .select()
-    .from(invitations)
-    .where(eq(invitations.surveyId, input.surveyId))
-    .orderBy(desc(invitations.createdAt))
-
-  return { ok: true, invitations: rows }
+  return { ok: true, slug: survey.slug, publicUrl, responseCount }
 }

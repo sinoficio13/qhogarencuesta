@@ -27,12 +27,15 @@ async function createSurveyAction(formData: FormData) {
   const description = (formData.get('description') as string | null)?.trim() || undefined
   const metaChipsRaw = (formData.get('metaChipsRaw') as string | null)?.trim() || undefined
   const noteHtml = (formData.get('noteHtml') as string | null)?.trim() || undefined
+  const identifierTypeRaw = (formData.get('identifierType') as string | null) ?? 'email'
+  const identifierType = identifierTypeRaw === 'cedula' ? 'cedula' : 'email'
+  const identifierLabel = (formData.get('identifierLabel') as string | null)?.trim() || undefined
 
   const metaChips = metaChipsRaw
     ? metaChipsRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : undefined
 
-  await createSurvey({ title, slug, description, metaChips, noteHtml })
+  await createSurvey({ title, slug, description, metaChips, noteHtml, identifierType, identifierLabel })
   redirect('/admin')
 }
 
@@ -110,6 +113,19 @@ export default async function AdminPage() {
             Nota HTML (se sanitiza)
             <textarea name="noteHtml" placeholder="Ej: <b>Nota importante</b>: esto es privado" rows={3} style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }} />
           </label>
+          <label style={labelStyle}>
+            Identificador del respondente *
+            <select name="identifierType" defaultValue="email" style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="email">Email</option>
+              <option value="cedula">Cédula</option>
+            </select>
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>Campo requerido para dedup — se guarda hasheado, nunca en crudo.</span>
+          </label>
+          <label style={labelStyle}>
+            Label del identificador (opcional)
+            <input name="identifierLabel" placeholder="Ej: Email de trabajo, Número de documento" style={inputStyle} />
+            <span style={{ fontSize: 12, color: 'var(--muted)' }}>Texto que verá el respondente. Si está vacío se usa 'Email' o 'Cédula'.</span>
+          </label>
           <div>
             <button type="submit" className="btn" style={{ marginTop: 4 }}>
               Crear encuesta
@@ -175,7 +191,7 @@ export default async function AdminPage() {
                   Preguntas
                 </a>
                 <a href={`/admin/${survey.id}/links`} style={linkBtnStyle}>
-                  Links
+                  Compartir
                 </a>
                 <a href={`/admin/${survey.id}/responses`} style={linkBtnStyle}>
                   Respuestas

@@ -3,21 +3,15 @@
  *
  * surveys → questions → options + scaleRows
  * responses → answers
+ *
+ * Note: invitations table and its relations were removed in the PIVOT
+ * to identifier-based dedup (migration 0002_pivot_dedup.sql).
  */
 import { relations } from 'drizzle-orm'
-import { surveys, questions, options, scaleRows, responses, answers, invitations } from './schema'
+import { surveys, questions, options, scaleRows, responses, answers } from './schema'
 
 export const surveysRelations = relations(surveys, ({ many }) => ({
   questions: many(questions),
-  responses: many(responses),
-  invitations: many(invitations),
-}))
-
-export const invitationsRelations = relations(invitations, ({ one, many }) => ({
-  survey: one(surveys, {
-    fields: [invitations.surveyId],
-    references: [surveys.id],
-  }),
   responses: many(responses),
 }))
 
@@ -49,10 +43,6 @@ export const responsesRelations = relations(responses, ({ one, many }) => ({
   survey: one(surveys, {
     fields: [responses.surveyId],
     references: [surveys.id],
-  }),
-  invitation: one(invitations, {
-    fields: [responses.invitationId],
-    references: [invitations.id],
   }),
   answers: many(answers),
 }))

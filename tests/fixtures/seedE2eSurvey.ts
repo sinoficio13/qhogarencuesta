@@ -28,12 +28,11 @@ export async function seedE2eSurvey(dbUrl = DB_URL) {
   const db = drizzle(pool, { schema })
 
   try {
-    // Idempotent cleanup
+    // Idempotent cleanup — cascade deletes questions → options/scaleRows/responses
     const existing = await db.query.surveys.findFirst({
       where: eq(schema.surveys.slug, E2E_SLUG),
     })
     if (existing) {
-      // cascade deletes questions → options/scaleRows
       await db.delete(schema.surveys).where(eq(schema.surveys.id, existing.id))
     }
 

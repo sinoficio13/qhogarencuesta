@@ -12,6 +12,8 @@ const surveyRow: SurveyDbRow = {
   metaChips: ['chip1', 'chip2'],
   noteHtml: '<b>Nota:</b> importante',
   isActive: true,
+  identifierType: 'email',
+  identifierLabel: null,
   questions: [
     {
       id: 'q-single-uuid',
@@ -70,6 +72,16 @@ describe('toSurveyView', () => {
     expect(view.description).toBe('Encuesta para compradores')
     expect(view.metaChips).toEqual(['chip1', 'chip2'])
     expect(view.noteHtml).toBe('<b>Nota:</b> importante')
+    // PIVOT dedup fields
+    expect(view.identifierType).toBe('email')
+    expect(view.identifierLabel).toBeNull()
+  })
+
+  it('maps identifierType cedula and custom label', () => {
+    const row: SurveyDbRow = { ...surveyRow, identifierType: 'cedula', identifierLabel: 'Número de documento' }
+    const view = toSurveyView(row)
+    expect(view.identifierType).toBe('cedula')
+    expect(view.identifierLabel).toBe('Número de documento')
   })
 
   it('maps questions in position order', () => {
