@@ -32,8 +32,11 @@ describe('createSession + verifySession', () => {
     it('rejects a token with altered signature', async () => {
       const token = await createSession(TEST_SECRET)
       const parts = token.split('.')
-      // Flip a char in the signature part
-      parts[1] = parts[1].slice(0, -1) + (parts[1].slice(-1) === 'A' ? 'B' : 'A')
+      // Flip a char in the MIDDLE of the signature (not the last — last char may be padding-safe)
+      const mid = Math.floor(parts[1].length / 2)
+      const sigChars = parts[1].split('')
+      sigChars[mid] = sigChars[mid] === 'A' ? 'B' : 'A'
+      parts[1] = sigChars.join('')
       const tampered = parts.join('.')
 
       const result = await verifySession(tampered, TEST_SECRET)

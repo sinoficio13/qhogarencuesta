@@ -13,6 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Stub Next.js server-only marker so unit tests can import server modules
+      'server-only': path.resolve(__dirname, 'tests/__mocks__/server-only.ts'),
     },
   },
 })
