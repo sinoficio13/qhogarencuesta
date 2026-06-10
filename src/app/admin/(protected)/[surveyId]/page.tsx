@@ -284,55 +284,63 @@ export default async function QuestionEditorPage({
                 overflow: 'hidden',
               }}
             >
-              {/* Question header */}
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, background: '#FAFCFB' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: '#fff', background: 'var(--brand)', borderRadius: 8, padding: '3px 9px', flex: 'none' }}>
-                  {idx + 1}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    letterSpacing: '.06em',
-                    textTransform: 'uppercase',
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    background: typeBadgeColors[q.type] ?? '#f0f0f0',
-                    border: '1px solid var(--line)',
-                    color: 'var(--muted)',
-                  }}
-                >
-                  {q.type}
-                </span>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, flex: 1, color: 'var(--ink)' }}>
+              {/* Question header — apilado: controles arriba, texto full-width abajo (mobile-friendly) */}
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 10, background: '#FAFCFB' }}>
+                {/* Fila de controles */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: '#fff', background: 'var(--brand)', borderRadius: 8, padding: '3px 9px', flex: 'none' }}>
+                    {idx + 1}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: '.06em',
+                      textTransform: 'uppercase',
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      background: typeBadgeColors[q.type] ?? '#f0f0f0',
+                      border: '1px solid var(--line)',
+                      color: 'var(--muted)',
+                      flex: 'none',
+                    }}
+                  >
+                    {q.type}
+                  </span>
+                  {!q.isRequired && (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted)', border: '1px solid var(--line)', padding: '2px 6px', borderRadius: 6, flex: 'none' }}>
+                      opcional
+                    </span>
+                  )}
+
+                  <div style={{ flex: 1 }} />
+
+                  {/* Reorder + delete */}
+                  <div style={{ display: 'flex', gap: 4, flex: 'none' }}>
+                    <form action={moveQuestionUpAction} style={{ display: 'inline' }}>
+                      <input type="hidden" name="surveyId" value={surveyId} />
+                      <input type="hidden" name="questionId" value={q.id} />
+                      <input type="hidden" name="allIds" value={allIds.join(',')} />
+                      <button type="submit" disabled={idx === 0} style={{ ...iconBtnStyle, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                    </form>
+                    <form action={moveQuestionDownAction} style={{ display: 'inline' }}>
+                      <input type="hidden" name="surveyId" value={surveyId} />
+                      <input type="hidden" name="questionId" value={q.id} />
+                      <input type="hidden" name="allIds" value={allIds.join(',')} />
+                      <button type="submit" disabled={idx === questionList.length - 1} style={{ ...iconBtnStyle, opacity: idx === questionList.length - 1 ? 0.3 : 1 }}>↓</button>
+                    </form>
+                    <form action={deleteQuestionAction} style={{ display: 'inline' }}>
+                      <input type="hidden" name="id" value={q.id} />
+                      <input type="hidden" name="surveyId" value={surveyId} />
+                      <button type="submit" style={{ ...iconBtnStyle, color: '#c0392b' }}>✕</button>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Texto de la pregunta — ancho completo */}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, lineHeight: 1.45, color: 'var(--ink)' }}>
                   {q.text}
                 </span>
-                {!q.isRequired && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted)', border: '1px solid var(--line)', padding: '2px 6px', borderRadius: 6 }}>
-                    opcional
-                  </span>
-                )}
-
-                {/* Reorder + delete */}
-                <div style={{ display: 'flex', gap: 4, flex: 'none' }}>
-                  <form action={moveQuestionUpAction} style={{ display: 'inline' }}>
-                    <input type="hidden" name="surveyId" value={surveyId} />
-                    <input type="hidden" name="questionId" value={q.id} />
-                    <input type="hidden" name="allIds" value={allIds.join(',')} />
-                    <button type="submit" disabled={idx === 0} style={{ ...iconBtnStyle, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
-                  </form>
-                  <form action={moveQuestionDownAction} style={{ display: 'inline' }}>
-                    <input type="hidden" name="surveyId" value={surveyId} />
-                    <input type="hidden" name="questionId" value={q.id} />
-                    <input type="hidden" name="allIds" value={allIds.join(',')} />
-                    <button type="submit" disabled={idx === questionList.length - 1} style={{ ...iconBtnStyle, opacity: idx === questionList.length - 1 ? 0.3 : 1 }}>↓</button>
-                  </form>
-                  <form action={deleteQuestionAction} style={{ display: 'inline' }}>
-                    <input type="hidden" name="id" value={q.id} />
-                    <input type="hidden" name="surveyId" value={surveyId} />
-                    <button type="submit" style={{ ...iconBtnStyle, color: '#c0392b' }}>✕</button>
-                  </form>
-                </div>
               </div>
 
               {/* Edit form */}
