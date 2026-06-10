@@ -29,6 +29,7 @@ import {
   updateScaleRow,
   removeScaleRow,
 } from '@/actions/adminQuestions'
+import AddQuestionForm from './AddQuestionForm'
 
 // ── Param type ─────────────────────────────────────────────────────────────────
 
@@ -221,51 +222,8 @@ export default async function QuestionEditorPage({
         </div>
       </div>
 
-      {/* Add question form */}
-      <details style={{ marginBottom: 28, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', padding: '18px 22px' }}>
-        <summary style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, cursor: 'pointer', color: 'var(--brand-deep)' }}>
-          + Agregar pregunta
-        </summary>
-        <form action={createQuestionAction} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input type="hidden" name="surveyId" value={surveyId} />
-          <label style={labelStyle}>
-            Tipo *
-            <select name="type" required style={{ ...inputStyle, cursor: 'pointer' }}>
-              <option value="single">Opción única (single)</option>
-              <option value="multi">Múltiple opción (multi)</option>
-              <option value="scale">Escala de valoración (scale)</option>
-              <option value="open">Respuesta abierta (open)</option>
-            </select>
-          </label>
-          <label style={labelStyle}>
-            Texto de la pregunta *
-            <input name="text" required placeholder="Ej: ¿Cómo calificarías el proceso de compra?" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Hint (explicación)
-            <input name="hint" placeholder="Texto de ayuda debajo de la pregunta" style={inputStyle} />
-          </label>
-          <label style={labelStyle}>
-            Hint Why (contexto)
-            <input name="hintWhy" placeholder="¿Por qué hacemos esta pregunta?" style={inputStyle} />
-          </label>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-              <select name="isRequired" style={{ ...inputStyle, width: 'auto' }}>
-                <option value="true">Obligatoria</option>
-                <option value="false">Opcional</option>
-              </select>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-              maxSelect (solo multi)
-              <input name="maxSelect" type="number" min={1} placeholder="sin límite" style={{ ...inputStyle, width: 100 }} />
-            </label>
-          </div>
-          <div>
-            <button type="submit" className="btn">Agregar pregunta</button>
-          </div>
-        </form>
-      </details>
+      {/* Add question form — componente cliente claro y estético */}
+      <AddQuestionForm surveyId={surveyId} action={createQuestionAction} />
 
       {/* Question list */}
       {questionList.length === 0 ? (
@@ -470,10 +428,6 @@ export default async function QuestionEditorPage({
 }
 
 // ── Inline styles ─────────────────────────────────────────────────────────────
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, fontWeight: 500, color: 'var(--ink)',
-}
 
 const smallLabelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'var(--ink)',
