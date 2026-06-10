@@ -66,12 +66,12 @@ export default function Home() {
 
       <div className="wrap">
         <div className="tabs" role="tablist" aria-label="Encuestas">
-          <Link href="/compradores" className="tab" role="tab" aria-selected="false">
+          <Link href="/buyers" className="tab" role="tab" aria-selected="false">
             <span className="num">01 — público final</span>
             <span className="ttl">Compradores</span>
             <span className="sub">Quien ya compró vivienda en el último año</span>
           </Link>
-          <Link href="/agentes" className="tab" role="tab" aria-selected="false">
+          <Link href="/agents" className="tab" role="tab" aria-selected="false">
             <span className="num">02 — primero en responder</span>
             <span className="ttl">Agentes inmobiliarios</span>
             <span className="sub">Agencias, franquicias y agentes autónomos</span>
