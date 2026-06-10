@@ -14,6 +14,7 @@ import { surveys, responses } from '@/db/schema'
 import { eq, count } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import CopyButton from './CopyButton'
+import SurveyNav from '../SurveyNav'
 
 interface Params {
   surveyId: string
@@ -45,32 +46,10 @@ export default async function LinksPage({
 
   return (
     <div style={{ maxWidth: 720 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ marginBottom: 6 }}>
-          <a
-            href={`/admin/${surveyId}`}
-            style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', textDecoration: 'none' }}
-          >
-            ← {survey.title}
-          </a>
-        </div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: 26,
-            letterSpacing: '-.02em',
-            margin: '0 0 8px',
-            color: 'var(--ink)',
-          }}
-        >
-          Compartir encuesta
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
-          Este es el único link público de la encuesta. Compartilo por WhatsApp, email o redes.
-        </p>
-      </div>
+      <SurveyNav surveyId={surveyId} active="share" title={survey.title} />
+      <p style={{ color: 'var(--muted)', fontSize: 14, margin: '0 0 24px' }}>
+        Este es el único link público de la encuesta. Compartilo por WhatsApp, email o redes.
+      </p>
 
       {/* Public link card */}
       <div
