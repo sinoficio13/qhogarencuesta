@@ -28,6 +28,7 @@
  */
 
 import { db } from '@/db'
+import { withTx } from '@/db/tx'
 import { responses, answers, surveys } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { validateSubmit } from '@/lib/validation/submit'
@@ -125,9 +126,10 @@ export async function submitSurvey(
   // 5. Hash the identifier (deterministic, pepper-keyed)
   const identifierHash = await hashIdentifier(identifierType, payload.identifier)
 
-  // 6. Atomic transaction: insert response + answers
+  // 6. Insertar response + answers (transacción si el driver la soporta;
+  //    neon-http no la soporta → corre secuencial vía withTx).
   try {
-    await db.transaction(async (tx) => {
+    await withTx(async (tx) => {
       // Insert response with identifierHash
       // Partial unique index (survey_id, identifier_hash) WHERE NOT NULL
       // will reject duplicates at the DB level if there's a race.

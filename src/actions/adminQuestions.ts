@@ -13,6 +13,7 @@ import 'server-only'
 import { revalidatePath } from 'next/cache'
 import { eq, asc } from 'drizzle-orm'
 import { db } from '@/db'
+import { withTx } from '@/db/tx'
 import { questions, options, scaleRows, answers } from '@/db/schema'
 import { requireAdminAction } from '@/lib/auth/requireAdmin'
 import { guardTypeChange } from '@/lib/validation/crud'
@@ -175,7 +176,7 @@ export async function reorderQuestions(
   // Update in one transaction using a two-pass approach to avoid unique constraint
   // violations during intermediate states: first shift all positions to high
   // temporary values (offset by 10000), then set the final gap-based positions.
-  await db.transaction(async (tx) => {
+  await withTx(async (tx) => {
     // Pass 1: shift to temporary positions to avoid constraint conflicts
     for (const { id, position } of entries) {
       await tx
@@ -315,7 +316,7 @@ export async function reorderOptions(
 
   const entries = rebalancePositions(input.orderedIds)
 
-  await db.transaction(async (tx) => {
+  await withTx(async (tx) => {
     // Two-pass: avoid unique constraint violation during intermediate states
     for (const { id, position } of entries) {
       await tx.update(options).set({ position: position + 10000 }).where(eq(options.id, id))
@@ -447,7 +448,7 @@ export async function reorderScaleRows(
 
   const entries = rebalancePositions(input.orderedIds)
 
-  await db.transaction(async (tx) => {
+  await withTx(async (tx) => {
     // Two-pass: avoid unique constraint violation during intermediate states
     for (const { id, position } of entries) {
       await tx.update(scaleRows).set({ position: position + 10000 }).where(eq(scaleRows.id, id))
