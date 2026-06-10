@@ -24,6 +24,7 @@
 
 import { useState, useCallback } from 'react'
 import { submitSurvey } from '@/actions/submitSurvey'
+import { validateIdentifier } from '@/lib/identifier'
 import type { SurveyView, QuestionView } from '@/lib/dto/surveyShape'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -237,9 +238,26 @@ export function SurveyForm({ view }: Props) {
     e.preventDefault()
     if (submitting) return
 
-    // Client-side: basic required check on identifier
+    // Client-side: validar el identificador ANTES de enviar.
+    // 1) requerido  2) formato (mismo criterio que el server, vía validateIdentifier)
+    const scrollToId = () => {
+      if (typeof document !== 'undefined') {
+        requestAnimationFrame(() =>
+          document
+            .getElementById('survey-identifier-field')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        )
+      }
+    }
     if (!identifier.trim()) {
       setErrors({ _identifier: `${identifierLabel} es obligatorio.` })
+      scrollToId()
+      return
+    }
+    const idCheck = validateIdentifier(identifierType, identifier.trim())
+    if (!idCheck.ok) {
+      setErrors({ _identifier: idCheck.error })
+      scrollToId()
       return
     }
 
@@ -313,7 +331,7 @@ export function SurveyForm({ view }: Props) {
   // ── Form ──────────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
       <section className="panel">
         <div className="panel-head">
           <h2>{view.title}</h2>
