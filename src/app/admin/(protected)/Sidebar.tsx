@@ -6,6 +6,7 @@
  * Responsive: barra vertical en desktop (md+), barra horizontal arriba en móvil.
  */
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
 const UUID = /^\/admin\/[0-9a-f-]{36}/
@@ -53,15 +54,10 @@ export default function Sidebar() {
       className="border-b md:border-b-0 md:border-r md:w-56 md:min-h-screen md:shrink-0"
     >
       {/* Brand */}
-      <div className="px-5 py-4 flex items-center gap-2" style={{ borderColor: 'var(--line)' }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M3 11.5 12 3l9 8.5" stroke="#0E7C66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M5 10v10h14V10" stroke="#0F2A2C" strokeWidth="2" strokeLinejoin="round" />
-          <circle cx="12" cy="14" r="2.4" fill="#EE6C4D" />
-        </svg>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18, color: 'var(--ink)' }}>
-          Q<span style={{ color: 'var(--brand)' }}>Hogar</span>
-        </span>
+      <div className="px-5 py-4 flex items-center" style={{ borderColor: 'var(--line)' }}>
+        <Link href="/admin" aria-label="QHogar — inicio" className="inline-flex">
+          <Image src="/qhogar-logo.svg" alt="QHogar" width={132} height={60} priority style={{ width: 132, height: 'auto' }} />
+        </Link>
       </div>
 
       {/* Nav */}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- QHogar Icon - simplified Q with roof -->
+
+  <!-- Roof element -->
+  <path d="M26.95 36.33 L50 16.8 L73.05 36.33"
+        fill="none"
+        stroke="#c0532a"
+        stroke-width="5.47"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Q letter body (circle part) -->
+  <circle cx="50" cy="57.03" r="21.88"
+          fill="none"
+          stroke="#1E3A5F"
+          stroke-width="8.2"/>
+
+  <!-- Q tail -->
+  <path d="M64.26 72.27 L74.61 80.08"
+        fill="none"
+        stroke="#1E3A5F"
+        stroke-width="6.25"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

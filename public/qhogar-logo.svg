@@ -1,0 +1,39 @@
+<svg width="570" height="260" viewBox="0 0 570 260" xmlns="http://www.w3.org/2000/svg">
+  <!-- QHogar wordmark - integrated Q + hogar -->
+  <path
+    d="M95.7 81.9 L165 33.3 L234.3 81.9"
+    fill="none"
+    stroke="#c0532a"
+    stroke-width="16.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Brand color: #c0532a (color-terra in app.css) -->
+
+  <circle
+    cx="165"
+    cy="135"
+    r="61.2"
+    fill="none"
+    stroke="#1E3A5F"
+    stroke-width="21.6"
+  />
+
+  <path
+    d="M205.5 179.1 L243.3 209.7"
+    fill="none"
+    stroke="#1E3A5F"
+    stroke-width="19.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <text
+    x="258"
+    y="198"
+    font-family="Montserrat, Avenir, Helvetica, Arial, sans-serif"
+    font-size="119"
+    font-weight="600"
+    fill="#1E3A5F"
+    letter-spacing="-4">hogar</text>
+</svg>
