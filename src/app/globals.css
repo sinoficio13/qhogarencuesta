@@ -225,6 +225,8 @@ footer.site{max-width:1080px;margin:0 auto;padding:10px 24px 60px;color:var(--mu
   .q-hint{margin-left:0}
   textarea{width:100%;margin-left:0}
   .scale-row{grid-template-columns:1fr}
-  .dots{justify-content:space-between}
+  .dots{justify-content:space-between;gap:8px}
+  /* Touch targets: WCAG 2.5.5 / iOS mínimo 44px en mobile */
+  .dot{flex:1;min-width:44px;height:44px;font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
