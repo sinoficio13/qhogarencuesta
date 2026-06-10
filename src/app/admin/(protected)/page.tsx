@@ -15,6 +15,7 @@ import { sql } from 'drizzle-orm'
 import { createSurvey, deleteSurvey, toggleActive } from '@/actions/adminSurveys'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import QRCode from 'qrcode'
 import ShareButton from './ShareButton'
 
 // ── Form action wrappers ──────────────────────────────────────────────────────
@@ -74,16 +75,35 @@ export default async function AdminPage() {
     .from(surveys)
     .orderBy(surveys.createdAt)
 
+  // UN solo QR del home (SVG inline, generado en el server). Lo escaneás desde
+  // el teléfono y entrás rápido al panel para manejar todo desde el celu.
+  const homeQr = await QRCode.toString(baseUrl, {
+    type: 'svg',
+    margin: 1,
+    width: 150,
+    errorCorrectionLevel: 'M',
+  })
+
   return (
     <div style={{ maxWidth: 900 }}>
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-.02em', margin: '0 0 4px', color: 'var(--ink)' }}>
-          Encuestas
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
-          {surveyList.length} encuesta{surveyList.length !== 1 ? 's' : ''} en total
-        </p>
+      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-.02em', margin: '0 0 4px', color: 'var(--ink)' }}>
+            Encuestas
+          </h1>
+          <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+            {surveyList.length} encuesta{surveyList.length !== 1 ? 's' : ''} en total
+          </p>
+        </div>
+
+        {/* QR del home — escaneá para abrir el panel desde el teléfono */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', padding: '12px 14px' }}>
+          <div style={{ width: 150, height: 150, lineHeight: 0 }} dangerouslySetInnerHTML={{ __html: homeQr }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted-2)', letterSpacing: '.03em', textAlign: 'center' }}>
+            Escaneá para entrar<br />desde el teléfono
+          </span>
+        </div>
       </div>
 
       {/* Create survey form */}
