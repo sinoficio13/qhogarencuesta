@@ -15,6 +15,7 @@ import { sql } from 'drizzle-orm'
 import { createSurvey, deleteSurvey, toggleActive } from '@/actions/adminSurveys'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import ShareButton from './ShareButton'
 
 // ── Form action wrappers ──────────────────────────────────────────────────────
 // These parse FormData and delegate to the typed action functions.
@@ -57,6 +58,8 @@ async function toggleActiveAction(formData: FormData) {
 
 export default async function AdminPage() {
   await requireAdmin()
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
   // Fetch all surveys with question and response counts
   const surveyList = await db
@@ -190,9 +193,7 @@ export default async function AdminPage() {
                 <a href={`/admin/${survey.id}`} style={linkBtnStyle}>
                   Preguntas
                 </a>
-                <a href={`/admin/${survey.id}/links`} style={linkBtnStyle}>
-                  Compartir
-                </a>
+                <ShareButton url={`${baseUrl}/${survey.slug}`} title={survey.title} />
                 <a href={`/admin/${survey.id}/responses`} style={linkBtnStyle}>
                   Respuestas
                 </a>
