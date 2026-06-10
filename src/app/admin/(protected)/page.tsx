@@ -11,7 +11,7 @@
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { db } from '@/db'
 import { surveys, questions, responses } from '@/db/schema'
-import { count } from 'drizzle-orm'
+import { count, max } from 'drizzle-orm'
 import { createSurvey, deleteSurvey, toggleActive } from '@/actions/adminSurveys'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -87,6 +87,19 @@ export default async function AdminPage() {
   const qCountMap: Record<string, number> = Object.fromEntries(qCounts.map((r) => [r.surveyId, r.n]))
   const rCountMap: Record<string, number> = Object.fromEntries(rCounts.map((r) => [r.surveyId, r.n]))
 
+  // Última respuesta por encuesta (recencia → ¿sigue entrando data?)
+  const lastResp = await db
+    .select({ surveyId: responses.surveyId, last: max(responses.submittedAt) })
+    .from(responses)
+    .groupBy(responses.surveyId)
+  const lastMap: Record<string, Date | null> = Object.fromEntries(lastResp.map((r) => [r.surveyId, r.last]))
+  const totalResponses = Object.values(rCountMap).reduce((a, b) => a + b, 0)
+
+  const fmtDate = (d: Date | null) =>
+    d
+      ? new Date(d).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : '—'
+
   // UN solo QR del home (SVG inline, generado en el server). Lo escaneás desde
   // el teléfono y entrás rápido al panel para manejar todo desde el celu.
   const homeQr = await QRCode.toString(baseUrl, {
@@ -117,6 +130,36 @@ export default async function AdminPage() {
           </span>
         </div>
       </div>
+
+      {/* Resumen de avance — vista combinada de ambas encuestas */}
+      {surveyList.length > 0 && (
+        <div style={{ marginBottom: 24, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', padding: '18px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>Avance</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted-2)' }}>
+              {totalResponses} respuesta{totalResponses !== 1 ? 's' : ''} en total
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {surveyList.map((s) => (
+              <div key={s.id} style={{ flex: '1 1 220px', border: '1px solid var(--line)', borderRadius: 12, padding: '14px 16px', background: '#FAFCFB' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', marginBottom: 6 }}>{s.title}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: 'var(--brand-deep)', lineHeight: 1 }}>{rCountMap[s.id] ?? 0}</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>respuestas</span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted-2)', margin: '6px 0 10px' }}>
+                  Última: {fmtDate(lastMap[s.id] ?? null)}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <a href={`/admin/${s.id}/responses`} style={miniLinkStyle}>Ver resultados →</a>
+                  <a href={`/admin/${s.id}/export`} style={{ ...miniLinkStyle, color: 'var(--muted)' }}>Exportar CSV</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Create survey form */}
       <details style={{ marginBottom: 32, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', padding: '20px 24px' }}>
@@ -258,6 +301,14 @@ export default async function AdminPage() {
 }
 
 // ── Inline styles (no shadcn) ─────────────────────────────────────────────────
+
+const miniLinkStyle: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 12,
+  color: 'var(--brand-deep)',
+  textDecoration: 'none',
+  borderBottom: '1px solid transparent',
+}
 
 const labelStyle: React.CSSProperties = {
   display: 'flex',
