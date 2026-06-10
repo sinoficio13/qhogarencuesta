@@ -80,19 +80,12 @@ function normalizeOption(o: JsonOption): { text: string; isControl: boolean } {
 
 // ── Seed de una encuesta ───────────────────────────────────────────────────────
 
-async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
-  const existing = await db
-    .select({ id: surveys.id })
-    .from(surveys)
-    .where(eq(surveys.slug, s.id))
-    .limit(1)
-
-  if (existing.length > 0) {
-    return 'skipped'
-  }
-
-  await db.transaction(async (tx) => {
-    const [survey] = await tx
+// Inserta toda la encuesta usando un ejecutor (`tx` con transacción, o `db`
+// directo cuando el driver no soporta transacciones — p. ej. neon-http/HTTP).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function insertSurveyData(exec: any, s: JsonSurvey): Promise<void> {
+  {
+    const [survey] = await exec
       .insert(surveys)
       .values({
         slug: s.id,
@@ -108,7 +101,7 @@ async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
 
     let qPos = POS_GAP
     for (const q of s.questions) {
-      const [question] = await tx
+      const [question] = await exec
         .insert(questions)
         .values({
           surveyId: survey.id,
@@ -127,7 +120,7 @@ async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
         let oPos = POS_GAP
         for (const raw of q.options) {
           const opt = normalizeOption(raw)
-          await tx.insert(options).values({
+          await exec.insert(options).values({
             questionId: question.id,
             position: oPos,
             text: opt.text,
@@ -141,7 +134,7 @@ async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
       if (q.type === 'scale' && q.rows) {
         let rPos = POS_GAP
         for (const label of q.rows) {
-          await tx.insert(scaleRows).values({
+          await exec.insert(scaleRows).values({
             questionId: question.id,
             position: rPos,
             labelHtml: label,
@@ -151,7 +144,34 @@ async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
       }
       // 'text' (open): sin options ni rows
     }
-  })
+  }
+}
+
+async function seedSurvey(s: JsonSurvey): Promise<'created' | 'skipped'> {
+  const existing = await db
+    .select({ id: surveys.id })
+    .from(surveys)
+    .where(eq(surveys.slug, s.id))
+    .limit(1)
+
+  if (existing.length > 0) {
+    return 'skipped'
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      await insertSurveyData(tx, s)
+    })
+  } catch (err) {
+    // neon-http (y otros drivers HTTP) no soportan transacciones interactivas.
+    // El survey aún no existe (chequeo de arriba), así que reintentar sin
+    // transacción es seguro y no duplica.
+    if (err instanceof Error && /No transactions support/i.test(err.message)) {
+      await insertSurveyData(db, s)
+    } else {
+      throw err
+    }
+  }
 
   return 'created'
 }
