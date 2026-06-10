@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QHogar · Encuestas de validación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F2A2C;
+    --ink-2:#163a3c;
+    --brand:#0E7C66;
+    --brand-deep:#0A5D4D;
+    --accent:#EE6C4D;
+    --accent-deep:#d4532f;
+    --paper:#F4F6F3;
+    --surface:#FFFFFF;
+    --line:#DCE4E0;
+    --sage:#C9DAD2;
+    --muted:#566A66;
+    --muted-2:#7E8F8B;
+    --ok:#0E7C66;
+    --font-display:'Bricolage Grotesque',system-ui,sans-serif;
+    --font-body:'Inter',system-ui,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+    --r:14px;
+    --shadow:0 1px 2px rgba(15,42,44,.04), 0 12px 32px -18px rgba(15,42,44,.28);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:var(--font-body);
+    color:var(--ink);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.55;
+  }
+  ::selection{background:var(--accent);color:#fff}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(244,246,243,.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1080px;margin:0 auto;padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+  .brand .mark{
+    width:26px;height:26px;flex:none;
+  }
+  .brand b{color:var(--brand)}
+  .topbar .tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2);border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:
+      radial-gradient(120% 120% at 88% 8%, #1c4a47 0%, var(--ink) 55%);
+    color:#EAF1EE;
+    position:relative;overflow:hidden;
+    border-bottom:1px solid var(--ink);
+  }
+  .hero-inner{max-width:1080px;margin:0 auto;padding:64px 24px 70px;position:relative;z-index:2}
+  .eyebrow{
+    font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:#7FE9CF;display:inline-flex;align-items:center;gap:9px;margin:0 0 22px;
+  }
+  .eyebrow::before{content:"";width:24px;height:1px;background:#7FE9CF;display:inline-block}
+  .hero h1{
+    font-family:var(--font-display);font-weight:800;
+    font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.025em;
+    margin:0 0 20px;max-width:16ch;
+  }
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p.lead{font-size:clamp(16px,1.7vw,19px);color:#B9CEC8;max-width:54ch;margin:0 0 34px}
+  .hero-stats{display:flex;flex-wrap:wrap;gap:14px}
+  .stat{
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:14px 18px;min-width:140px;
+  }
+  .stat .n{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:-.02em;display:block}
+  .stat .n span{color:var(--accent)}
+  .stat .l{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8FA8A2;margin-top:3px;display:block}
+
+  /* isochrone signature */
+  .iso{position:absolute;top:-60px;right:-80px;width:520px;height:520px;z-index:1;opacity:.9;pointer-events:none}
+  @media (max-width:760px){.iso{opacity:.34;right:-160px;top:40px}}
+  .iso .ring{fill:none;stroke:#2f5c58;stroke-width:1}
+  .iso .ring.dash{stroke-dasharray:3 7;stroke:#3c706b}
+  .iso .hex{fill:none;stroke:#27514d;stroke-width:1}
+  .iso .pin{fill:var(--accent)}
+  .iso .pulse{transform-origin:center;animation:pulse 5.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.25;r:54px}50%{opacity:.55;r:70px}}
+
+  /* ---------- Tabs ---------- */
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .tabs{display:flex;gap:8px;margin:-30px 0 0;position:relative;z-index:10}
+  .tab{
+    flex:1;border:1px solid var(--line);background:var(--surface);
+    border-radius:14px 14px 0 0;border-bottom:none;
+    padding:18px 22px;cursor:pointer;text-align:left;
+    box-shadow:var(--shadow);transition:.18s ease;
+    font-family:var(--font-body);color:var(--muted);
+  }
+  .tab:hover{transform:translateY(-2px)}
+  .tab .num{font-family:var(--font-mono);font-size:12px;color:var(--muted-2);display:block;margin-bottom:4px;letter-spacing:.04em}
+  .tab .ttl{font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.01em}
+  .tab .sub{font-size:13px;color:var(--muted);margin-top:2px}
+  .tab[aria-selected="true"]{border-color:var(--brand);background:var(--surface);position:relative}
+  .tab[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--brand);border-radius:14px 14px 0 0}
+  .tab[aria-selected="true"] .ttl{color:var(--brand-deep)}
+
+  /* ---------- Panel ---------- */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:0 0 18px 18px;box-shadow:var(--shadow);padding:0 0 8px;margin-bottom:60px;overflow:hidden}
+  .panel[hidden]{display:none}
+  .panel-head{padding:30px 34px 26px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfdfc,transparent)}
+  .panel-head h2{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:-.02em;margin:0 0 6px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+  .chip{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.03em;color:var(--brand-deep);background:#E9F4F0;border:1px solid #CDE6DD;border-radius:999px;padding:5px 11px}
+  .note{
+    margin:18px 0 0;padding:14px 16px;border-left:3px solid var(--accent);
+    background:#FDF3EF;border-radius:0 10px 10px 0;font-size:13.5px;color:#6b463b;
+  }
+  .note b{color:var(--accent-deep)}
+
+  .qlist{padding:8px 34px 10px}
+  .q{padding:30px 0;border-bottom:1px solid var(--line)}
+  .q:last-child{border-bottom:none}
+  .q-h{display:flex;gap:14px;align-items:baseline;margin-bottom:18px}
+  .q-n{font-family:var(--font-mono);font-weight:600;font-size:13px;color:#fff;background:var(--brand);border-radius:8px;padding:3px 9px;flex:none;letter-spacing:.02em}
+  .q-n.opt{background:var(--sage);color:var(--brand-deep)}
+  .q-t{font-family:var(--font-display);font-weight:600;font-size:18.5px;line-height:1.32;letter-spacing:-.01em}
+  .q-hint{font-size:13px;color:var(--muted);margin:-8px 0 16px 50px}
+  .q-hint.why{color:var(--accent-deep);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.02em;text-transform:uppercase}
+
+  /* options */
+  .opts{display:flex;flex-direction:column;gap:9px;padding-left:50px}
+  .opt-row{
+    display:flex;align-items:center;gap:12px;cursor:pointer;
+    border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+    transition:.15s ease;background:#fff;font-size:15px;
+  }
+  .opt-row:hover{border-color:var(--sage);background:#FAFCFB}
+  .opt-row.control{border-style:dashed;color:var(--muted)}
+  .opt-row input{accent-color:var(--brand);width:18px;height:18px;flex:none;cursor:pointer}
+  .opt-row.sel{border-color:var(--brand);background:#F0F8F5;box-shadow:inset 0 0 0 1px var(--brand)}
+  .opt-row.disabled{opacity:.45;cursor:not-allowed}
+  .ctrl-tag{margin-left:auto;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2);border:1px solid var(--line);padding:2px 7px;border-radius:6px}
+
+  /* scale matrix */
+  .scale{padding-left:50px;display:flex;flex-direction:column;gap:8px}
+  .scale-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;border:1px solid var(--line);border-radius:11px;padding:11px 15px;background:#fff;transition:.15s}
+  .scale-row:hover{border-color:var(--sage)}
+  .scale-row .label{font-size:14.5px}
+  .scale-row .label b{color:var(--brand-deep);font-weight:600}
+  .dots{display:flex;gap:6px}
+  .dot{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;
+    font-family:var(--font-mono);font-size:13px;color:var(--muted);cursor:pointer;transition:.13s;
+  }
+  .dot:hover{border-color:var(--brand);color:var(--brand-deep)}
+  .dot.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  .scale-legend{display:flex;justify-content:space-between;padding-left:50px;margin-bottom:4px;font-family:var(--font-mono);font-size:11px;color:var(--muted-2);letter-spacing:.02em}
+
+  textarea{
+    width:calc(100% - 50px);margin-left:50px;border:1px solid var(--line);border-radius:11px;
+    padding:13px 15px;font-family:var(--font-body);font-size:15px;color:var(--ink);resize:vertical;min-height:84px;background:#fff;
+  }
+  textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #E3F2EC}
+
+  /* footer / submit */
+  .panel-foot{padding:24px 34px 30px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .progress{font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.03em}
+  .progress b{color:var(--brand-deep)}
+  .btn{
+    font-family:var(--font-body);font-weight:600;font-size:15px;border:none;cursor:pointer;
+    background:var(--accent);color:#fff;border-radius:11px;padding:13px 26px;transition:.16s ease;
+  }
+  .btn:hover{background:var(--accent-deep);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+
+  .done{padding:60px 34px;text-align:center}
+  .done h3{font-family:var(--font-display);font-weight:700;font-size:24px;margin:0 0 8px;letter-spacing:-.02em}
+  .done p{color:var(--muted);margin:0 auto;max-width:46ch}
+  .done .check{width:54px;height:54px;border-radius:50%;background:#E9F4F0;display:grid;place-items:center;margin:0 auto 18px}
+
+  footer.site{max-width:1080px;margin:0 auto;padding:10px 24px 60px;color:var(--muted-2);font-size:12.5px;font-family:var(--font-mono);letter-spacing:.02em}
+
+  @media (max-width:680px){
+    .tabs{flex-direction:column;gap:6px;margin-top:-18px}
+    .tab{border-radius:14px;border-bottom:1px solid var(--line)}
+    .tab[aria-selected="true"]::after{display:none}
+    .panel{border-radius:18px}
+    .qlist,.panel-head,.panel-foot{padding-left:20px;padding-right:20px}
+    .opts,.scale,.scale-legend,.q-hint{padding-left:0;margin-left:0}
+    .q-hint{margin-left:0}
+    textarea{width:100%;margin-left:0}
+    .scale-row{grid-template-columns:1fr}
+    .dots{justify-content:space-between}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M3 11.5 12 3l9 8.5" stroke="#0E7C66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 10v10h14V10" stroke="#0F2A2C" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="12" cy="14" r="2.4" fill="#EE6C4D"/>
+      </svg>
+      <span>Q<b>Hogar</b></span>
+    </div>
+    <span class="tag">Validación de producto · 2026</span>
+  </div>
+</header>
+
+<section class="hero">
+  <svg class="iso" viewBox="0 0 520 520" aria-hidden="true">
+    <g class="hexgroup">
+      <polygon class="hex" points="260,150 300,173 300,219 260,242 220,219 220,173"/>
+      <polygon class="hex" points="340,150 380,173 380,219 340,242 300,219 300,173"/>
+      <polygon class="hex" points="180,150 220,173 220,219 180,242 140,219 140,173"/>
+      <polygon class="hex" points="300,219 340,242 340,288 300,311 260,288 260,242"/>
+      <polygon class="hex" points="220,219 260,242 260,288 220,311 180,288 180,242"/>
+      <polygon class="hex" points="260,288 300,311 300,357 260,380 220,357 220,311"/>
+    </g>
+    <circle class="ring" cx="260" cy="265" r="160"/>
+    <circle class="ring dash" cx="260" cy="265" r="118"/>
+    <circle class="ring" cx="260" cy="265" r="76"/>
+    <circle class="pulse" cx="260" cy="265" r="54" fill="#EE6C4D" opacity=".3"/>
+    <path class="pin" d="M260 238c-13 0-23 10-23 23 0 17 23 38 23 38s23-21 23-38c0-13-10-23-23-23z"/>
+    <circle cx="260" cy="261" r="7.5" fill="#0F2A2C"/>
+  </svg>
+
+  <div class="hero-inner">
+    <p class="eyebrow">Investigación de usuarios</p>
+    <h1>Cómo busca la gente <em>su próxima casa</em>.</h1>
+    <p class="lead">Dos encuestas cortas para validar lo que diferencia a QHogar: búsqueda por proximidad, filtros por amenidades y el asistente por WhatsApp. Primero los agentes leen el mercado; después, los compradores lo confirman.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="n">2</span><span class="l">públicos</span></div>
+      <div class="stat"><span class="n"><span>5</span>+1</span><span class="l">preguntas · compradores</span></div>
+      <div class="stat"><span class="n">~2<span> min</span></span><span class="l">tiempo de respuesta</span></div>
+      <div class="stat"><span class="n">9</span><span class="l">preguntas · agentes</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="tabs" role="tablist" aria-label="Encuestas">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-buyers" id="t-buyers" onclick="switchTab('buyers')">
+      <span class="num">01 — público final</span>
+      <span class="ttl">Compradores</span>
+      <span class="sub">Quien ya compró vivienda en el último año</span>
+    </button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-agents" id="t-agents" onclick="switchTab('agents')">
+      <span class="num">02 — primero en responder</span>
+      <span class="ttl">Agentes inmobiliarios</span>
+      <span class="sub">Agencias, franquicias y agentes autónomos</span>
+    </button>
+  </div>
+
+  <!-- ================= COMPRADORES ================= -->
+  <section class="panel" id="p-buyers" role="tabpanel" aria-labelledby="t-buyers">
+    <div class="panel-head">
+      <h2>Encuesta a compradores</h2>
+      <div class="meta">
+        <span class="chip">Para quien ya compró</span>
+        <span class="chip">5 preguntas + 1 opcional</span>
+        <span class="chip">~2 min</span>
+        <span class="chip">Todo en pasado</span>
+      </div>
+      <p class="note"><b>Por qué cerradas:</b> las preguntas de tocar se completan mucho más que las de escribir. La pregunta 1 obliga a elegir <b>una sola</b> cosa para que la respuesta sea honesta, y la 5 incluye dos opciones "trampa" (más pisos · mejores fotos) para comprobar si tus funciones ganan o pierden frente al inventario.</p>
+    </div>
+
+    <div class="qlist" data-survey="buyers">
+
+      <!-- Q1 -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">01</span><span class="q-t">Cuando dudabas entre varios pisos parecidos en precio y tamaño, ¿qué inclinó la balanza hacia el que compraste?</span></div>
+        <div class="q-hint why">El desempate · elige solo una</div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="b1"><span>La ubicación / lo bien comunicado que estaba</span></label>
+          <label class="opt-row"><input type="radio" name="b1"><span>Lo que tenía cerca (colegios, tiendas, parques, transporte)</span></label>
+          <label class="opt-row"><input type="radio" name="b1"><span>El entorno: tranquilidad, poco ruido, buen aire, zonas verdes</span></label>
+          <label class="opt-row"><input type="radio" name="b1"><span>El piso en sí (luz, terraza, piscina, garaje, reformado)</span></label>
+          <label class="opt-row"><input type="radio" name="b1"><span>El precio / era el más asequible</span></label>
+          <label class="opt-row"><input type="radio" name="b1"><span>Otra cosa</span></label>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">02</span><span class="q-t">Cuando un piso te interesaba, ¿comprobabas por tu cuenta en otra app (Google Maps u otra) cuánto tardabas al trabajo, si había colegio o transporte cerca, o qué había alrededor?</span></div>
+        <div class="q-hint why">Detecta el "trabajo manual" que QHogar elimina</div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="b2"><span>Sí, casi siempre lo hacía</span></label>
+          <label class="opt-row"><input type="radio" name="b2"><span>A veces</span></label>
+          <label class="opt-row"><input type="radio" name="b2"><span>No, me fiaba del anuncio</span></label>
+        </div>
+      </div>
+
+      <!-- Q3 scale -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">03</span><span class="q-t">Si una web te hubiera dado esto sin tener que buscarlo aparte, ¿cuánto te habría ayudado?</span></div>
+        <div class="q-hint">1 = no me habría aportado · 5 = me habría ayudado muchísimo</div>
+        <div class="scale" data-scale>
+          <div class="scale-row"><span class="label">Tiempo <b>andando a un sitio que yo elija</b> (mi trabajo, casa de familiares)</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label">Tiempo andando al <b>colegio</b> más cercano</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label">Filtrar por <b>piscina y otras características</b> (terraza, garaje, trastero)</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label">Datos del <b>entorno</b>: ruido, calidad del aire, zonas verdes</span><div class="dots"></div></div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">04</span><span class="q-t">Para buscar piso, ¿qué te habría resultado más cómodo?</span></div>
+        <div class="q-hint why">El chatbot, puesto a competir — sin venderlo</div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="b4"><span>Buscar yo mismo con filtros en la web</span></label>
+          <label class="opt-row"><input type="radio" name="b4"><span>Que un asistente por <b>WhatsApp</b> me preguntara y me fuera mandando opciones</span></label>
+          <label class="opt-row"><input type="radio" name="b4"><span>Hablar con un agente humano</span></label>
+          <label class="opt-row"><input type="radio" name="b4"><span>Me da igual</span></label>
+        </div>
+      </div>
+
+      <!-- Q5 multi max 2 -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">05</span><span class="q-t">Si una web nueva tuviera esto, ¿qué te haría usarla en vez de Idealista o Fotocasa?</span></div>
+        <div class="q-hint">Selecciona un máximo de 2</div>
+        <div class="opts" data-multi data-max="2">
+          <label class="opt-row"><input type="checkbox" name="b5"><span>Buscar por WhatsApp</span></label>
+          <label class="opt-row"><input type="checkbox" name="b5"><span>Proximidad a un sitio que yo elija</span></label>
+          <label class="opt-row"><input type="checkbox" name="b5"><span>Colegio a pocos minutos andando</span></label>
+          <label class="opt-row"><input type="checkbox" name="b5"><span>Piscina y otras características</span></label>
+          <label class="opt-row"><input type="checkbox" name="b5"><span>Datos del entorno (ruido, aire, zonas verdes)</span></label>
+          <label class="opt-row control"><input type="checkbox" name="b5"><span>Que tenga más pisos que las demás</span><span class="ctrl-tag">control</span></label>
+          <label class="opt-row control"><input type="checkbox" name="b5"><span>Que tenga mejores fotos e información más fiable</span><span class="ctrl-tag">control</span></label>
+        </div>
+      </div>
+
+      <!-- Q6 open opt -->
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n opt">06</span><span class="q-t">¿Echaste de menos algo que ninguna web te ofrecía? <span style="color:var(--muted-2);font-weight:400;font-size:14px">(opcional)</span></span></div>
+        <textarea placeholder="La única pregunta abierta, al final y opcional: quien quiera, suelta la joya."></textarea>
+      </div>
+
+    </div>
+
+    <div class="panel-foot">
+      <span class="progress">Respondidas <b data-count>0</b> / 5</span>
+      <button class="btn" onclick="finish('buyers')">Enviar respuestas</button>
+    </div>
+  </section>
+
+  <!-- ================= AGENTES ================= -->
+  <section class="panel" id="p-agents" role="tabpanel" aria-labelledby="t-agents" hidden>
+    <div class="panel-head">
+      <h2>Encuesta a agentes inmobiliarios</h2>
+      <div class="meta">
+        <span class="chip">Primero en responder</span>
+        <span class="chip">9 preguntas</span>
+        <span class="chip">~3 min</span>
+        <span class="chip">Lee el mercado antes</span>
+      </div>
+      <p class="note"><b>Ojo:</b> el agente te da visión agregada (ha visto decidir a cientos de compradores) y, sobre todo, te dice si <b>adoptaría y pagaría</b> el producto — porque la agencia es tu cliente. La pregunta 8 destapa la mayor fricción: ¿querrá mostrar datos que pueden echar atrás a un comprador de su propio anuncio?</p>
+    </div>
+
+    <div class="qlist" data-survey="agents">
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">01</span><span class="q-t">¿Cómo describirías tu actividad?</span></div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a1"><span>Agencia independiente</span></label>
+          <label class="opt-row"><input type="radio" name="a1"><span>Franquicia</span></label>
+          <label class="opt-row"><input type="radio" name="a1"><span>Agente autónomo</span></label>
+          <label class="opt-row"><input type="radio" name="a1"><span>Promotora / obra nueva</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">02</span><span class="q-t">¿Cuántas operaciones cierras al mes, más o menos?</span></div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a2"><span>1 – 3</span></label>
+          <label class="opt-row"><input type="radio" name="a2"><span>4 – 10</span></label>
+          <label class="opt-row"><input type="radio" name="a2"><span>Más de 10</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">03</span><span class="q-t">¿A qué te dedicas principalmente?</span></div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a3"><span>Compraventa</span></label>
+          <label class="opt-row"><input type="radio" name="a3"><span>Alquiler</span></label>
+          <label class="opt-row"><input type="radio" name="a3"><span>Las dos por igual</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">04</span><span class="q-t">¿En qué momento se te cae más una operación?</span></div>
+        <div class="q-hint why">Dónde está el dolor real del agente</div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a4"><span>El cliente no encuentra nada que le encaje</span></label>
+          <label class="opt-row"><input type="radio" name="a4"><span>Duda por la zona o el entorno</span></label>
+          <label class="opt-row"><input type="radio" name="a4"><span>Se va a la competencia</span></label>
+          <label class="opt-row"><input type="radio" name="a4"><span>Por precio o financiación</span></label>
+          <label class="opt-row"><input type="radio" name="a4"><span>Otra cosa</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">05</span><span class="q-t">¿Qué te preguntan tus clientes que el anuncio no responde?</span></div>
+        <div class="q-hint">Selecciona todas las que apliquen</div>
+        <div class="opts" data-multi>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Colegios cerca</span></label>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Transporte público</span></label>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Ruido y seguridad de la zona</span></label>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Qué hay alrededor (tiendas, parques)</span></label>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Tiempo hasta su trabajo</span></label>
+          <label class="opt-row"><input type="checkbox" name="a5"><span>Casi nada, viene todo en el anuncio</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">06</span><span class="q-t">¿Qué usas hoy para tu día a día?</span></div>
+        <div class="q-hint">Selecciona todas las que apliquen</div>
+        <div class="opts" data-multi>
+          <label class="opt-row"><input type="checkbox" name="a6"><span>Idealista</span></label>
+          <label class="opt-row"><input type="checkbox" name="a6"><span>Fotocasa / Habitaclia</span></label>
+          <label class="opt-row"><input type="checkbox" name="a6"><span>Un CRM inmobiliario (Inmovilla, Witei, etc.)</span></label>
+          <label class="opt-row"><input type="checkbox" name="a6"><span>Web propia de la agencia</span></label>
+          <label class="opt-row"><input type="checkbox" name="a6"><span>Excel / WhatsApp / a mano</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">07</span><span class="q-t">Pensando en vender más o diferenciarte, ¿cuánto te ayudaría cada cosa?</span></div>
+        <div class="q-hint">1 = nada · 5 = muchísimo</div>
+        <div class="scale" data-scale>
+          <div class="scale-row"><span class="label">Un <b>portal con tu marca</b> para tus anuncios</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label">Que tus clientes busquen por <b>proximidad</b> (cole, trabajo, transporte)</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label"><b>Datos del entorno</b> en cada anuncio (ruido, aire, servicios)</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label">Un <b>asistente por WhatsApp</b> que atienda leads 24 h</span><div class="dots"></div></div>
+          <div class="scale-row"><span class="label"><b>Edición de fotos con IA</b> para tus anuncios</span><div class="dots"></div></div>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">08</span><span class="q-t">¿Mostrarías en tu portal datos como ruido o riesgo de inundación, aunque a veces echen atrás a un comprador?</span></div>
+        <div class="q-hint why">La pregunta clave de adopción</div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a8"><span>Sí, siempre — la transparencia genera confianza</span></label>
+          <label class="opt-row"><input type="radio" name="a8"><span>Solo cuando es un buen dato para el anuncio</span></label>
+          <label class="opt-row"><input type="radio" name="a8"><span>No, prefiero controlar qué se muestra</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n">09</span><span class="q-t">¿Pagarías una cuota mensual por un portal con tu marca y estas funciones?</span></div>
+        <div class="opts" data-single>
+          <label class="opt-row"><input type="radio" name="a9"><span>Sí, si me ayuda a cerrar más</span></label>
+          <label class="opt-row"><input type="radio" name="a9"><span>Depende del precio</span></label>
+          <label class="opt-row"><input type="radio" name="a9"><span>No, con lo que uso me apaño</span></label>
+        </div>
+      </div>
+
+      <div class="q" data-q>
+        <div class="q-h"><span class="q-n opt">+</span><span class="q-t">¿Qué te falta hoy y ningún portal te da? <span style="color:var(--muted-2);font-weight:400;font-size:14px">(opcional)</span></span></div>
+        <textarea placeholder="Lo que de verdad te quitaría trabajo o te haría vender más…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="panel-foot">
+      <span class="progress">Respondidas <b data-count>0</b> / 9</span>
+      <button class="btn" onclick="finish('agents')">Enviar respuestas</button>
+    </div>
+  </section>
+</div>
+
+<footer class="site">QHogar · Maqueta de presentación — los datos no se guardan. Compradores: difusión a quien ya compró. Agentes: primer envío para leer el mercado.</footer>
+
+<script>
+  /* ---- build 1–5 scales ---- */
+  document.querySelectorAll('[data-scale] .dots').forEach(d=>{
+    for(let i=1;i<=5;i++){
+      const b=document.createElement('button');
+      b.className='dot';b.type='button';b.textContent=i;
+      b.onclick=()=>{ d.querySelectorAll('.dot').forEach(x=>x.classList.remove('on'));
+        b.classList.add('on'); updateCounts(); };
+      d.appendChild(b);
+    }
+  });
+
+  /* ---- single / multi option styling + max enforcement ---- */
+  function refreshGroup(group){
+    group.querySelectorAll('.opt-row').forEach(r=>{
+      const inp=r.querySelector('input');
+      r.classList.toggle('sel', inp.checked);
+    });
+    if(group.hasAttribute('data-multi')){
+      const max=parseInt(group.getAttribute('data-max')||'0',10);
+      if(max>0){
+        const checked=group.querySelectorAll('input:checked').length;
+        group.querySelectorAll('.opt-row').forEach(r=>{
+          const inp=r.querySelector('input');
+          const block = checked>=max && !inp.checked;
+          inp.disabled=block; r.classList.toggle('disabled',block);
+        });
+      }
+    }
+  }
+  document.querySelectorAll('[data-single],[data-multi]').forEach(group=>{
+    group.addEventListener('change',()=>{ refreshGroup(group); updateCounts(); });
+  });
+
+  /* ---- progress counter (counts answered required questions) ---- */
+  function updateCounts(){
+    document.querySelectorAll('.panel').forEach(panel=>{
+      const counter=panel.querySelector('[data-count]');
+      if(!counter) return;
+      const qs=panel.querySelectorAll('.q');
+      let answered=0, required=0;
+      qs.forEach(q=>{
+        const isOpt=q.querySelector('.q-n.opt');
+        if(isOpt) return; // optional open question
+        required++;
+        const hasRadio=q.querySelector('input[type=radio]:checked');
+        const hasCheck=q.querySelector('input[type=checkbox]:checked');
+        const hasScale=q.querySelector('.dot.on');
+        if(hasRadio||hasCheck||hasScale) answered++;
+      });
+      counter.textContent=answered;
+    });
+  }
+
+  /* ---- tabs ---- */
+  function switchTab(which){
+    const map={buyers:['t-buyers','p-buyers'],agents:['t-agents','p-agents']};
+    document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
+    document.querySelectorAll('.panel').forEach(p=>p.hidden=true);
+    document.getElementById(map[which][0]).setAttribute('aria-selected','true');
+    document.getElementById(map[which][1]).hidden=false;
+    window.scrollTo({top:document.querySelector('.tabs').offsetTop-20,behavior:'smooth'});
+  }
+
+  /* ---- submit (presentational) ---- */
+  function finish(which){
+    const panel=document.getElementById(which==='buyers'?'p-buyers':'p-agents');
+    panel.querySelector('.qlist').style.display='none';
+    panel.querySelector('.panel-foot').style.display='none';
+    const head=panel.querySelector('.panel-head');
+    const done=document.createElement('div');
+    done.className='done';
+    done.innerHTML=`
+      <div class="check">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 10 17 19 7" stroke="#0E7C66" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3>¡Gracias! Respuesta registrada</h3>
+      <p>Esto es una maqueta de presentación, así que no se guarda nada. En producción, aquí conectarías Google Forms, Tally o un endpoint propio.</p>`;
+    panel.insertBefore(done,head.nextSibling);
+    done.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  updateCounts();
+</script>
+</body>
+</html>

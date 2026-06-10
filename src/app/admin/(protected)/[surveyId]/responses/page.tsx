@@ -12,6 +12,7 @@
  */
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import SurveyNav from '../SurveyNav'
 import { db } from '@/db'
 import { surveys, questions, options, scaleRows, responses, answers } from '@/db/schema'
 import { eq, asc, sql, count } from 'drizzle-orm'
@@ -86,22 +87,17 @@ export default async function ResponsesPage({
 
   return (
     <div style={{ maxWidth: 860 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ marginBottom: 6 }}>
-          <a href={`/admin/${surveyId}`} style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', textDecoration: 'none' }}>
-            ← {survey.title}
-          </a>
-        </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, letterSpacing: '-.02em', margin: '0 0 8px', color: 'var(--ink)' }}>
-          Respuestas
-        </h1>
-        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '12px 18px', background: 'var(--surface)', display: 'inline-block' }}>
+      <SurveyNav surveyId={surveyId} active="responses" title={survey.title} />
+      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '12px 18px', background: 'var(--surface)' }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: 'var(--ink)' }}>{total}</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted-2)', marginLeft: 10 }}>
             respuesta{total !== 1 ? 's' : ''} totales
           </span>
         </div>
+        <a href={`/admin/${surveyId}/export`} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', textDecoration: 'none', border: '1px solid #CDE6DD', background: '#E9F4F0', borderRadius: 8, padding: '8px 12px' }}>
+          ↓ Exportar CSV
+        </a>
       </div>
 
       {total === 0 ? (

@@ -30,6 +30,7 @@ import {
   removeScaleRow,
 } from '@/actions/adminQuestions'
 import AddQuestionForm from './AddQuestionForm'
+import SurveyNav from './SurveyNav'
 
 // ── Param type ─────────────────────────────────────────────────────────────────
 
@@ -203,24 +204,7 @@ export default async function QuestionEditorPage({
 
   return (
     <div style={{ maxWidth: 900 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <a href="/admin" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', textDecoration: 'none' }}>
-              ← Panel
-            </a>
-          </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, letterSpacing: '-.02em', margin: '0 0 4px', color: 'var(--ink)' }}>
-            {survey.title}
-          </h1>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted-2)' }}>/{survey.slug}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <a href={`/admin/${surveyId}/links`} style={chipLinkStyle}>Links</a>
-          <a href={`/admin/${surveyId}/responses`} style={chipLinkStyle}>Respuestas</a>
-        </div>
-      </div>
+      <SurveyNav surveyId={surveyId} active="edit" title={survey.title} />
 
       {/* Add question form — componente cliente claro y estético */}
       <AddQuestionForm surveyId={surveyId} action={createQuestionAction} />
@@ -436,12 +420,6 @@ const smallLabelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', fontSize: 14,
   fontFamily: 'var(--font-body)', color: 'var(--ink)', background: '#fff', outline: 'none',
-}
-
-const chipLinkStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '.04em',
-  color: 'var(--brand-deep)', background: '#E9F4F0', border: '1px solid #CDE6DD',
-  borderRadius: 8, padding: '5px 11px', textDecoration: 'none',
 }
 
 const iconBtnStyle: React.CSSProperties = {

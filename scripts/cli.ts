@@ -286,7 +286,7 @@ RESPUESTAS
   async 'responses:reset'() {
     const s = await surveyBySlug(positional[0])
     if (!flags['yes']) throw new Error('Agregá --yes para confirmar el borrado de TODAS las respuestas')
-    const del = await db.delete(responses).where(eq(responses.surveyId, s.id)).returning({ id: responses.id })
+    const del = await db.delete(responses).where(eq(responses.surveyId, s.id)).returning()
     console.log(`✓ Borradas ${del.length} respuestas de /${s.slug}`)
   },
 }

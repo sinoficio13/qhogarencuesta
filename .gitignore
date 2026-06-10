@@ -47,3 +47,4 @@ next-env.d.ts
 
 # Database / Drizzle — generated SQL migrations are KEPT in git
 # drizzle/*.sql intentionally tracked
+.env*.local

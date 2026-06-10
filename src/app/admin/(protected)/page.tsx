@@ -268,6 +268,9 @@ export default async function AdminPage() {
                 <a href={`/admin/${survey.id}`} style={linkBtnStyle}>
                   Preguntas
                 </a>
+                <a href={`/admin/${survey.id}/preview`} style={linkBtnStyle}>
+                  Vista previa
+                </a>
                 <ShareButton url={`${baseUrl}/${survey.slug}`} title={survey.title} />
                 <a href={`/admin/${survey.id}/responses`} style={linkBtnStyle}>
                   Respuestas

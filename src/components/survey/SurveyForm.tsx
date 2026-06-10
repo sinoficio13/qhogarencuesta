@@ -39,6 +39,9 @@ type FormState = Record<string, AnswerState>
 
 interface Props {
   view: SurveyView
+  /** Vista previa del admin: se ve igual que para el encuestado pero el envío
+   *  está deshabilitado y no guarda nada. */
+  preview?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,7 +183,7 @@ function OpenQuestion({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function SurveyForm({ view }: Props) {
+export function SurveyForm({ view, preview = false }: Props) {
   const [identifier, setIdentifier] = useState('')
   const [formState, setFormState] = useState<FormState>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -236,6 +239,7 @@ export function SurveyForm({ view }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (preview) return // vista previa: no se envía nada
     if (submitting) return
 
     // Client-side: validar el identificador ANTES de enviar.
@@ -332,6 +336,25 @@ export function SurveyForm({ view }: Props) {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
+      {preview && (
+        <div
+          style={{
+            margin: '0 0 16px',
+            padding: '12px 18px',
+            borderRadius: 12,
+            background: '#FFF6E9',
+            border: '1px solid #F0D9A8',
+            color: '#8a6d3b',
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span aria-hidden="true">👁</span>
+          <span><strong>Vista previa.</strong> Así la ven los encuestados. Podés tocar todo; <strong>no se guarda nada</strong>.</span>
+        </div>
+      )}
       <section className="panel">
         <div className="panel-head">
           <h2>{view.title}</h2>
@@ -487,9 +510,15 @@ export function SurveyForm({ view }: Props) {
           <span className="progress">
             Respondidas <b>{answeredCount}</b> / {requiredCount}
           </span>
-          <button type="submit" className="btn" disabled={submitting}>
-            {submitting ? 'Enviando…' : 'Enviar respuestas'}
-          </button>
+          {preview ? (
+            <button type="button" className="btn" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+              Enviar (deshabilitado en vista previa)
+            </button>
+          ) : (
+            <button type="submit" className="btn" disabled={submitting}>
+              {submitting ? 'Enviando…' : 'Enviar respuestas'}
+            </button>
+          )}
         </div>
       </section>
     </form>
