@@ -10,8 +10,8 @@
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { db } from '@/db'
-import { surveys } from '@/db/schema'
-import { sql } from 'drizzle-orm'
+import { surveys, questions, responses } from '@/db/schema'
+import { count } from 'drizzle-orm'
 import { createSurvey, deleteSurvey, toggleActive } from '@/actions/adminSurveys'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -62,18 +62,30 @@ export default async function AdminPage() {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
-  // Fetch all surveys with question and response counts
+  // Surveys + conteos. NOTA: las subqueries correlacionadas vía sql`` devolvían
+  // 0 sobre neon-http (bug del driver HTTP). Se usan agregaciones GROUP BY
+  // separadas, que funcionan igual en node-postgres (local) y neon-http (prod).
   const surveyList = await db
     .select({
       id: surveys.id,
       title: surveys.title,
       slug: surveys.slug,
       isActive: surveys.isActive,
-      questionCount: sql<number>`(select count(*) from questions where questions.survey_id = ${surveys.id})::int`,
-      responseCount: sql<number>`(select count(*) from responses where responses.survey_id = ${surveys.id})::int`,
     })
     .from(surveys)
     .orderBy(surveys.createdAt)
+
+  const qCounts = await db
+    .select({ surveyId: questions.surveyId, n: count() })
+    .from(questions)
+    .groupBy(questions.surveyId)
+  const rCounts = await db
+    .select({ surveyId: responses.surveyId, n: count() })
+    .from(responses)
+    .groupBy(responses.surveyId)
+
+  const qCountMap: Record<string, number> = Object.fromEntries(qCounts.map((r) => [r.surveyId, r.n]))
+  const rCountMap: Record<string, number> = Object.fromEntries(rCounts.map((r) => [r.surveyId, r.n]))
 
   // UN solo QR del home (SVG inline, generado en el server). Lo escaneás desde
   // el teléfono y entrás rápido al panel para manejar todo desde el celu.
@@ -203,8 +215,8 @@ export default async function AdminPage() {
                 </div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted-2)', display: 'flex', gap: 16 }}>
                   <span>/{survey.slug}</span>
-                  <span>{survey.questionCount} pregunta{survey.questionCount !== 1 ? 's' : ''}</span>
-                  <span>{survey.responseCount} respuesta{survey.responseCount !== 1 ? 's' : ''}</span>
+                  <span>{qCountMap[survey.id] ?? 0} pregunta{(qCountMap[survey.id] ?? 0) !== 1 ? 's' : ''}</span>
+                  <span>{rCountMap[survey.id] ?? 0} respuesta{(rCountMap[survey.id] ?? 0) !== 1 ? 's' : ''}</span>
                 </div>
               </div>
 
