@@ -7,7 +7,7 @@
       "length": "5 preguntas + 1 opcional",
       "estimatedTime": "~2 min",
       "tense": "Todo en pasado",
-      "note": "Por qué cerradas: las preguntas de tocar se completan mucho más que las de escribir. La pregunta 1 obliga a elegir una sola cosa para que la respuesta sea honesta, y la 5 incluye dos opciones \"trampa\" (más pisos · mejores fotos) para comprobar si tus funciones ganan o pierden frente al inventario.",
+      "note": "",
       "questions": [
         {
           "number": "01",
@@ -102,7 +102,7 @@
       "length": "9 preguntas",
       "estimatedTime": "~3 min",
       "tense": "Lee el mercado antes",
-      "note": "Ojo: el agente te da visión agregada (ha visto decidir a cientos de compradores) y, sobre todo, te dice si adoptaría y pagaría el producto — porque la agencia es tu cliente. La pregunta 8 destapa la mayor fricción: ¿querrá mostrar datos que pueden echar atrás a un comprador de su propio anuncio?",
+      "note": "",
       "questions": [
         {
           "number": "01",
