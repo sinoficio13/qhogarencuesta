@@ -196,7 +196,7 @@ export default async function QuestionEditorPage({
   }
 
   const typeBadgeColors: Record<string, string> = {
-    single: '#E9F4F0',
+    single: '#E9EFF6',
     multi: '#EEF2FF',
     scale: '#FEF9EC',
     open: '#FDF3EF',

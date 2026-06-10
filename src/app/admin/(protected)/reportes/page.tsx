@@ -48,7 +48,7 @@ export default async function ReportesPage({
                     fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: on ? 600 : 500,
                     textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
                     border: `1px solid ${on ? 'var(--brand)' : 'var(--line)'}`,
-                    background: on ? '#E9F4F0' : 'var(--surface)',
+                    background: on ? '#E9EFF6' : 'var(--surface)',
                     color: on ? 'var(--brand-deep)' : 'var(--muted)',
                   }}
                 >

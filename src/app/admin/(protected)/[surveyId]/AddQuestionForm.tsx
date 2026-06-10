@@ -136,7 +136,7 @@ export default function AddQuestionForm({ surveyId, action }: Props) {
                 borderRadius: 12,
                 cursor: 'pointer',
                 border: `1px solid ${isSel ? 'var(--brand)' : 'var(--line)'}`,
-                background: isSel ? '#F0F8F5' : '#fff',
+                background: isSel ? '#EEF3FA' : '#fff',
                 boxShadow: isSel ? 'inset 0 0 0 1px var(--brand)' : 'none',
                 transition: '.15s ease',
               }}
@@ -200,7 +200,7 @@ export default function AddQuestionForm({ surveyId, action }: Props) {
                     fontWeight: 500,
                     cursor: 'pointer',
                     border: `1px solid ${isSel ? 'var(--brand)' : 'var(--line)'}`,
-                    background: isSel ? '#F0F8F5' : '#fff',
+                    background: isSel ? '#EEF3FA' : '#fff',
                     color: isSel ? 'var(--brand-deep)' : 'var(--muted)',
                   }}
                 >

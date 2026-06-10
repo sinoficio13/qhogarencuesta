@@ -72,7 +72,7 @@ export default async function EncuestasPage() {
                   <td style={{ ...td, ...tdC, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{qm[s.id] ?? 0}</td>
                   <td style={{ ...td, ...tdC, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{rm[s.id] ?? 0}</td>
                   <td style={td}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.05em', textTransform: 'uppercase', padding: '3px 9px', borderRadius: 999, border: '1px solid', borderColor: s.isActive ? 'var(--brand)' : 'var(--line)', color: s.isActive ? 'var(--brand-deep)' : 'var(--muted)', background: s.isActive ? '#E9F4F0' : 'transparent' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.05em', textTransform: 'uppercase', padding: '3px 9px', borderRadius: 999, border: '1px solid', borderColor: s.isActive ? 'var(--brand)' : 'var(--line)', color: s.isActive ? 'var(--brand-deep)' : 'var(--muted)', background: s.isActive ? '#E9EFF6' : 'transparent' }}>
                       {s.isActive ? 'Activa' : 'Inactiva'}
                     </span>
                   </td>

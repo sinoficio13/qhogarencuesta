@@ -61,7 +61,7 @@ export default async function SurveyResults({ surveyId }: { surveyId: string }) 
             respuesta{total !== 1 ? 's' : ''} totales
           </span>
         </div>
-        <a href={`/admin/${surveyId}/export`} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', textDecoration: 'none', border: '1px solid #CDE6DD', background: '#E9F4F0', borderRadius: 8, padding: '8px 12px' }}>
+        <a href={`/admin/${surveyId}/export`} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', textDecoration: 'none', border: '1px solid #CEDBEA', background: '#E9EFF6', borderRadius: 8, padding: '8px 12px' }}>
           ↓ Exportar CSV
         </a>
       </div>

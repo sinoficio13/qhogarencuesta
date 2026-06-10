@@ -74,7 +74,7 @@ export default function Sidebar() {
                 fontSize: 14.5,
                 fontWeight: on ? 600 : 500,
                 color: on ? 'var(--brand-deep)' : 'var(--muted)',
-                background: on ? '#E9F4F0' : 'transparent',
+                background: on ? '#E9EFF6' : 'transparent',
               }}
             >
               {item.icon}

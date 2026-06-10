@@ -43,7 +43,7 @@ export default function CopyButton({ text }: Props) {
         padding: '4px 10px',
         borderRadius: 7,
         border: '1px solid var(--line)',
-        background: copied ? '#E9F4F0' : '#fff',
+        background: copied ? '#E9EFF6' : '#fff',
         color: copied ? 'var(--brand-deep)' : 'var(--muted)',
         cursor: 'pointer',
         transition: '.15s ease',

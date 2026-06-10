@@ -9,6 +9,7 @@
  * notFound() for unknown or inactive surveys.
  */
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getSurveyView } from '@/db/queries/surveyView'
 import { SurveyForm } from '@/components/survey/SurveyForm'
@@ -41,12 +42,7 @@ export default async function SurveyPage({ params }: Props) {
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
-            <svg className="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M3 11.5 12 3l9 8.5" stroke="#0E7C66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M5 10v10h14V10" stroke="#0F2A2C" strokeWidth="2" strokeLinejoin="round" />
-              <circle cx="12" cy="14" r="2.4" fill="#EE6C4D" />
-            </svg>
-            <span>Q<b>Hogar</b></span>
+            <Image src="/qhogar-logo.svg" alt="QHogar" width={116} height={53} priority style={{ width: 116, height: 'auto' }} />
           </div>
           <span className="tag">Validación de producto · 2026</span>
         </div>
