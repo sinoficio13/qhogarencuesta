@@ -1,0 +1,244 @@
+{
+  "surveys": [
+    {
+      "id": "buyers",
+      "title": "Encuesta a compradores",
+      "audience": "Para quien ya compró",
+      "length": "5 preguntas + 1 opcional",
+      "estimatedTime": "~2 min",
+      "tense": "Todo en pasado",
+      "note": "Por qué cerradas: las preguntas de tocar se completan mucho más que las de escribir. La pregunta 1 obliga a elegir una sola cosa para que la respuesta sea honesta, y la 5 incluye dos opciones \"trampa\" (más pisos · mejores fotos) para comprobar si tus funciones ganan o pierden frente al inventario.",
+      "questions": [
+        {
+          "number": "01",
+          "name": "b1",
+          "type": "single",
+          "required": true,
+          "text": "Cuando dudabas entre varios pisos parecidos en precio y tamaño, ¿qué inclinó la balanza hacia el que compraste?",
+          "hint": "El desempate · elige solo una",
+          "options": [
+            "La ubicación / lo bien comunicado que estaba",
+            "Lo que tenía cerca (colegios, tiendas, parques, transporte)",
+            "El entorno: tranquilidad, poco ruido, buen aire, zonas verdes",
+            "El piso en sí (luz, terraza, piscina, garaje, reformado)",
+            "El precio / era el más asequible",
+            "Otra cosa"
+          ]
+        },
+        {
+          "number": "02",
+          "name": "b2",
+          "type": "single",
+          "required": true,
+          "text": "Cuando un piso te interesaba, ¿comprobabas por tu cuenta en otra app (Google Maps u otra) cuánto tardabas al trabajo, si había colegio o transporte cerca, o qué había alrededor?",
+          "hint": "Detecta el \"trabajo manual\" que QHogar elimina",
+          "options": [
+            "Sí, casi siempre lo hacía",
+            "A veces",
+            "No, me fiaba del anuncio"
+          ]
+        },
+        {
+          "number": "03",
+          "name": "b3",
+          "type": "scale",
+          "required": true,
+          "text": "Si una web te hubiera dado esto sin tener que buscarlo aparte, ¿cuánto te habría ayudado?",
+          "hint": "1 = no me habría aportado · 5 = me habría ayudado muchísimo",
+          "scale": { "min": 1, "max": 5 },
+          "rows": [
+            "Tiempo andando a un sitio que yo elija (mi trabajo, casa de familiares)",
+            "Tiempo andando al colegio más cercano",
+            "Filtrar por piscina y otras características (terraza, garaje, trastero)",
+            "Datos del entorno: ruido, calidad del aire, zonas verdes"
+          ]
+        },
+        {
+          "number": "04",
+          "name": "b4",
+          "type": "single",
+          "required": true,
+          "text": "Para buscar piso, ¿qué te habría resultado más cómodo?",
+          "hint": "El chatbot, puesto a competir — sin venderlo",
+          "options": [
+            "Buscar yo mismo con filtros en la web",
+            "Que un asistente por WhatsApp me preguntara y me fuera mandando opciones",
+            "Hablar con un agente humano",
+            "Me da igual"
+          ]
+        },
+        {
+          "number": "05",
+          "name": "b5",
+          "type": "multi",
+          "required": true,
+          "maxSelections": 2,
+          "text": "Si una web nueva tuviera esto, ¿qué te haría usarla en vez de Idealista o Fotocasa?",
+          "hint": "Selecciona un máximo de 2",
+          "options": [
+            { "label": "Buscar por WhatsApp", "control": false },
+            { "label": "Proximidad a un sitio que yo elija", "control": false },
+            { "label": "Colegio a pocos minutos andando", "control": false },
+            { "label": "Piscina y otras características", "control": false },
+            { "label": "Datos del entorno (ruido, aire, zonas verdes)", "control": false },
+            { "label": "Que tenga más pisos que las demás", "control": true },
+            { "label": "Que tenga mejores fotos e información más fiable", "control": true }
+          ]
+        },
+        {
+          "number": "06",
+          "name": "b6",
+          "type": "text",
+          "required": false,
+          "text": "¿Echaste de menos algo que ninguna web te ofrecía? (opcional)",
+          "placeholder": "La única pregunta abierta, al final y opcional: quien quiera, suelta la joya."
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Encuesta a agentes inmobiliarios",
+      "audience": "Primero en responder",
+      "length": "9 preguntas",
+      "estimatedTime": "~3 min",
+      "tense": "Lee el mercado antes",
+      "note": "Ojo: el agente te da visión agregada (ha visto decidir a cientos de compradores) y, sobre todo, te dice si adoptaría y pagaría el producto — porque la agencia es tu cliente. La pregunta 8 destapa la mayor fricción: ¿querrá mostrar datos que pueden echar atrás a un comprador de su propio anuncio?",
+      "questions": [
+        {
+          "number": "01",
+          "name": "a1",
+          "type": "single",
+          "required": true,
+          "text": "¿Cómo describirías tu actividad?",
+          "options": [
+            "Agencia independiente",
+            "Franquicia",
+            "Agente autónomo",
+            "Promotora / obra nueva"
+          ]
+        },
+        {
+          "number": "02",
+          "name": "a2",
+          "type": "single",
+          "required": true,
+          "text": "¿Cuántas operaciones cierras al mes, más o menos?",
+          "options": [
+            "1 – 3",
+            "4 – 10",
+            "Más de 10"
+          ]
+        },
+        {
+          "number": "03",
+          "name": "a3",
+          "type": "single",
+          "required": true,
+          "text": "¿A qué te dedicas principalmente?",
+          "options": [
+            "Compraventa",
+            "Alquiler",
+            "Las dos por igual"
+          ]
+        },
+        {
+          "number": "04",
+          "name": "a4",
+          "type": "single",
+          "required": true,
+          "text": "¿En qué momento se te cae más una operación?",
+          "hint": "Dónde está el dolor real del agente",
+          "options": [
+            "El cliente no encuentra nada que le encaje",
+            "Duda por la zona o el entorno",
+            "Se va a la competencia",
+            "Por precio o financiación",
+            "Otra cosa"
+          ]
+        },
+        {
+          "number": "05",
+          "name": "a5",
+          "type": "multi",
+          "required": true,
+          "maxSelections": null,
+          "text": "¿Qué te preguntan tus clientes que el anuncio no responde?",
+          "hint": "Selecciona todas las que apliquen",
+          "options": [
+            "Colegios cerca",
+            "Transporte público",
+            "Ruido y seguridad de la zona",
+            "Qué hay alrededor (tiendas, parques)",
+            "Tiempo hasta su trabajo",
+            "Casi nada, viene todo en el anuncio"
+          ]
+        },
+        {
+          "number": "06",
+          "name": "a6",
+          "type": "multi",
+          "required": true,
+          "maxSelections": null,
+          "text": "¿Qué usas hoy para tu día a día?",
+          "hint": "Selecciona todas las que apliquen",
+          "options": [
+            "Idealista",
+            "Fotocasa / Habitaclia",
+            "Un CRM inmobiliario (Inmovilla, Witei, etc.)",
+            "Web propia de la agencia",
+            "Excel / WhatsApp / a mano"
+          ]
+        },
+        {
+          "number": "07",
+          "name": "a7",
+          "type": "scale",
+          "required": true,
+          "text": "Pensando en vender más o diferenciarte, ¿cuánto te ayudaría cada cosa?",
+          "hint": "1 = nada · 5 = muchísimo",
+          "scale": { "min": 1, "max": 5 },
+          "rows": [
+            "Un portal con tu marca para tus anuncios",
+            "Que tus clientes busquen por proximidad (cole, trabajo, transporte)",
+            "Datos del entorno en cada anuncio (ruido, aire, servicios)",
+            "Un asistente por WhatsApp que atienda leads 24 h",
+            "Edición de fotos con IA para tus anuncios"
+          ]
+        },
+        {
+          "number": "08",
+          "name": "a8",
+          "type": "single",
+          "required": true,
+          "text": "¿Mostrarías en tu portal datos como ruido o riesgo de inundación, aunque a veces echen atrás a un comprador?",
+          "hint": "La pregunta clave de adopción",
+          "options": [
+            "Sí, siempre — la transparencia genera confianza",
+            "Solo cuando es un buen dato para el anuncio",
+            "No, prefiero controlar qué se muestra"
+          ]
+        },
+        {
+          "number": "09",
+          "name": "a9",
+          "type": "single",
+          "required": true,
+          "text": "¿Pagarías una cuota mensual por un portal con tu marca y estas funciones?",
+          "options": [
+            "Sí, si me ayuda a cerrar más",
+            "Depende del precio",
+            "No, con lo que uso me apaño"
+          ]
+        },
+        {
+          "number": "+",
+          "name": "a_open",
+          "type": "text",
+          "required": false,
+          "text": "¿Qué te falta hoy y ningún portal te da? (opcional)",
+          "placeholder": "Lo que de verdad te quitaría trabajo o te haría vender más…"
+        }
+      ]
+    }
+  ]
+}
