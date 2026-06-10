@@ -53,30 +53,28 @@ export default async function EncuestasPage() {
         <Link href="/admin/encuestas/nueva" className="btn" style={{ textDecoration: 'none' }}>+ Nueva encuesta</Link>
       </div>
 
-      {/* Tabla */}
+      {/* Lista — tabla en desktop, tarjetas en móvil (ver .s-table en globals.css) */}
       {surveyList.length === 0 ? (
-        <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '40px 0' }}>No hay encuestas todavía. Creá la primera arriba.</p>
+        <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '40px 0' }}>No hay encuestas todavía. Creá la primera con el botón de arriba.</p>
       ) : (
-        <div style={{ border: '1px solid var(--line)', borderRadius: 14, background: 'var(--surface)', overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+        <div className="s-card">
+          <table className="s-table">
             <thead>
-              <tr style={{ textAlign: 'left', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--muted-2)' }}>
-                <th style={th}>Nombre</th><th style={th}>Ruta</th><th style={thC}>Preg.</th><th style={thC}>Resp.</th><th style={th}>Estado</th><th style={thR}></th>
+              <tr>
+                <th>Nombre</th><th>Ruta</th><th className="c-num">Preg.</th><th className="c-num">Resp.</th><th>Estado</th><th className="c-act"></th>
               </tr>
             </thead>
             <tbody>
               {surveyList.map((s) => (
-                <tr key={s.id} style={{ borderTop: '1px solid var(--line)' }}>
-                  <td style={td}><span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{s.title}</span></td>
-                  <td style={{ ...td, fontFamily: 'var(--font-mono)', fontSize: 12.5, color: 'var(--muted)' }}>/{s.slug}</td>
-                  <td style={{ ...td, ...tdC, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{qm[s.id] ?? 0}</td>
-                  <td style={{ ...td, ...tdC, fontFamily: 'var(--font-mono)', fontSize: 13 }}>{rm[s.id] ?? 0}</td>
-                  <td style={td}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.05em', textTransform: 'uppercase', padding: '3px 9px', borderRadius: 999, border: '1px solid', borderColor: s.isActive ? 'var(--brand)' : 'var(--line)', color: s.isActive ? 'var(--brand-deep)' : 'var(--muted)', background: s.isActive ? '#E9EFF6' : 'transparent' }}>
-                      {s.isActive ? 'Activa' : 'Inactiva'}
-                    </span>
+                <tr key={s.id}>
+                  <td className="c-name"><span className="s-name">{s.title}</span></td>
+                  <td data-label="Ruta"><span className="s-route">/{s.slug}</span></td>
+                  <td className="c-num" data-label="Preguntas">{qm[s.id] ?? 0}</td>
+                  <td className="c-num" data-label="Respuestas">{rm[s.id] ?? 0}</td>
+                  <td data-label="Estado">
+                    <span className={`s-badge${s.isActive ? ' on' : ''}`}>{s.isActive ? 'Activa' : 'Inactiva'}</span>
                   </td>
-                  <td style={{ ...td, ...tdR }}>
+                  <td className="c-act">
                     <RowActions survey={s} baseUrl={baseUrl} toggleAction={toggleActiveAction} deleteAction={deleteSurveyAction} />
                   </td>
                 </tr>
@@ -88,11 +86,3 @@ export default async function EncuestasPage() {
     </div>
   )
 }
-
-// ── estilos ──────────────────────────────────────────────────────────────────
-const th: React.CSSProperties = { padding: '12px 16px', fontWeight: 400 }
-const thC: React.CSSProperties = { ...th, textAlign: 'center' }
-const thR: React.CSSProperties = { ...th, textAlign: 'right' }
-const td: React.CSSProperties = { padding: '12px 16px', verticalAlign: 'middle' }
-const tdC: React.CSSProperties = { textAlign: 'center' }
-const tdR: React.CSSProperties = { textAlign: 'right' }

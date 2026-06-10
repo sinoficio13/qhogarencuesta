@@ -245,3 +245,49 @@ footer.site{max-width:1080px;margin:0 auto;padding:10px 21px 48px;color:var(--mu
 }
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
+
+/* ============================================================
+   LISTA DE ENCUESTAS (admin) — tabla responsiva SIN overflow.
+   Desktop: tabla limpia full-width dentro de una card.
+   Móvil (≤720px): cada fila se vuelve una tarjeta apilada
+   (etiqueta:valor vía data-label). Cero scroll horizontal.
+   ============================================================ */
+.s-card{border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.s-table{width:100%;border-collapse:collapse}
+.s-table thead tr{text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-2)}
+.s-table th{padding:13px 18px;font-weight:400}
+.s-table td{padding:15px 18px;vertical-align:middle}
+.s-table tbody tr{border-top:1px solid var(--line)}
+.s-table .c-num{text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--ink)}
+.s-table .c-act{text-align:right}
+.s-name{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--ink)}
+.s-route{font-family:var(--font-mono);font-size:12.5px;color:var(--muted)}
+.s-badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.s-badge.on{border-color:var(--brand);color:var(--brand-deep);background:#E9EFF6}
+
+@media (max-width:720px){
+  .s-card{border:none;background:none;border-radius:0}
+  .s-table thead{display:none}
+  .s-table,.s-table tbody,.s-table tr,.s-table td{display:block;width:100%}
+  .s-table tbody tr{
+    position:relative;border:1px solid var(--line);border-radius:14px;
+    background:var(--surface);padding:14px 16px 8px;margin-bottom:12px;box-shadow:var(--shadow)
+  }
+  .s-table td{
+    padding:7px 0;border:none;text-align:left;
+    display:flex;justify-content:space-between;align-items:center;gap:14px
+  }
+  .s-table td::before{
+    content:attr(data-label);font-family:var(--font-mono);font-size:10.5px;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--muted-2)
+  }
+  .s-table td.c-name{
+    padding:0 40px 12px 0;margin-bottom:8px;border-bottom:1px solid var(--line);
+    display:block
+  }
+  .s-table td.c-name::before{display:none}
+  .s-table .s-name{font-size:16.5px}
+  .s-table td.c-act{position:absolute;top:12px;right:12px;padding:0}
+  .s-table td.c-act::before{display:none}
+  .s-table .c-num{text-align:right}
+}
