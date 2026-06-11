@@ -15,6 +15,7 @@
     "db:migrate:http": "tsx scripts/migrate-http.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed:agency": "tsx scripts/seed-agency.ts",
     "cli": "tsx scripts/cli.ts"
   },
   "dependencies": {

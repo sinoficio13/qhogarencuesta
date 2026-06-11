@@ -8,9 +8,17 @@
  * to identifier-based dedup (migration 0002_pivot_dedup.sql).
  */
 import { relations } from 'drizzle-orm'
-import { surveys, questions, options, scaleRows, responses, answers } from './schema'
+import { agencies, surveys, questions, options, scaleRows, responses, answers } from './schema'
 
-export const surveysRelations = relations(surveys, ({ many }) => ({
+export const agenciesRelations = relations(agencies, ({ many }) => ({
+  surveys: many(surveys),
+}))
+
+export const surveysRelations = relations(surveys, ({ one, many }) => ({
+  agency: one(agencies, {
+    fields: [surveys.agencyId],
+    references: [agencies.id],
+  }),
   questions: many(questions),
   responses: many(responses),
 }))

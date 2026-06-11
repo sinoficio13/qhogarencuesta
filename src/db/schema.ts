@@ -24,6 +24,21 @@ import {
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
+// ─── agencies ────────────────────────────────────────────────────────────────
+// La agencia que realiza la encuesta de campo para QHogar (ej: Angel Pinto).
+// Reutilizable entre encuestas → entidad propia, no campos sueltos por encuesta.
+
+export const agencies = pgTable('agencies', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  // URL del logo: ruta estática (/agencies/x.png) o URL de Vercel Blob.
+  logo: text('logo').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
+
 // ─── surveys ─────────────────────────────────────────────────────────────────
 
 export const surveys = pgTable('surveys', {
@@ -42,6 +57,8 @@ export const surveys = pgTable('surveys', {
     .notNull()
     .default('email'),
   identifierLabel: text('identifier_label'), // nullable — custom label shown in form
+  // Agencia que realiza la encuesta (co-branding). Nullable: no toda encuesta tiene una.
+  agencyId: uuid('agency_id').references(() => agencies.id, { onDelete: 'set null' }),
 })
 
 // ─── questions ────────────────────────────────────────────────────────────────
