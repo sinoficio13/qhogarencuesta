@@ -24,6 +24,7 @@
 
 import { useState, useCallback } from 'react'
 import { submitSurvey } from '@/actions/submitSurvey'
+import { Watermark } from './Watermark'
 import { validateIdentifier } from '@/lib/identifier'
 import type { SurveyView, QuestionView } from '@/lib/dto/surveyShape'
 
@@ -335,7 +336,13 @@ export function SurveyForm({ view, preview = false }: Props) {
   // ── Form ──────────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    // Contenedor que CONTIENE la marca de agua al área del formulario.
+    // El watermark vive ACÁ (no en la página) para que desaparezca solo en la
+    // "Done card" (que hace return antes) y no se muestre en la vista previa del admin.
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
+      {!preview && <Watermark image={view.watermarkImage} style={view.watermarkStyle} />}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <form onSubmit={handleSubmit} noValidate>
       {preview && (
         <div
           style={{
@@ -521,6 +528,8 @@ export function SurveyForm({ view, preview = false }: Props) {
           )}
         </div>
       </section>
-    </form>
+        </form>
+      </div>
+    </div>
   )
 }
