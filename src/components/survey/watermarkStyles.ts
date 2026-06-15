@@ -46,7 +46,8 @@ export function watermarkLayerStyle(
         backgroundImage: `url(${image})`,
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
-        backgroundSize: '380px auto',
+        // responsivo: ~360px en desktop, se achica en móvil para no tocar los bordes
+        backgroundSize: 'min(360px, 72vw) auto',
         opacity: 0.1,
         pointerEvents: 'none',
         zIndex: 2,
