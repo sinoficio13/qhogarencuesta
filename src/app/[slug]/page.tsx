@@ -49,10 +49,14 @@ export default async function SurveyPage({ params }: Props) {
         </div>
       </header>
 
-      <div className="wrap" style={{ paddingTop: '32px', position: 'relative' }}>
-        <Watermark image={view.watermarkImage} style={view.watermarkStyle} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <SurveyForm view={view} />
+      <div className="wrap" style={{ paddingTop: '32px' }}>
+        {/* Contenedor que CONTIENE la marca de agua al área del formulario
+            (overflow:hidden recorta el tile rotado y evita scroll horizontal). */}
+        <div style={{ position: 'relative', overflow: 'hidden' }}>
+          <Watermark image={view.watermarkImage} style={view.watermarkStyle} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <SurveyForm view={view} />
+          </div>
         </div>
       </div>
 

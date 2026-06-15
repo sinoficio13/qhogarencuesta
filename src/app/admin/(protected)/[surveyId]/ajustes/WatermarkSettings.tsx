@@ -252,6 +252,9 @@ const card: React.CSSProperties = {
 const previewCard: React.CSSProperties = {
   position: 'relative',
   overflow: 'hidden',
+  // transform crea contexto de contención: el watermark 'centered' (position:
+  // fixed) queda anclado a ESTA tarjeta en el preview, no al viewport.
+  transform: 'translateZ(0)',
   border: '1px solid var(--line)',
   borderRadius: 12,
   background: '#fff',
