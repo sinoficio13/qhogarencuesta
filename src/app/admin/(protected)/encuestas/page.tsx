@@ -32,7 +32,6 @@ async function toggleActiveAction(formData: FormData) {
 // ── page ──────────────────────────────────────────────────────────────────────
 export default async function EncuestasPage() {
   await requireAdmin()
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
   const surveyList = await db
     .select({ id: surveys.id, title: surveys.title, slug: surveys.slug, isActive: surveys.isActive })
@@ -67,7 +66,9 @@ export default async function EncuestasPage() {
             <tbody>
               {surveyList.map((s) => (
                 <tr key={s.id}>
-                  <td className="c-name"><span className="s-name">{s.title}</span></td>
+                  <td className="c-name">
+                    <Link href={`/admin/${s.id}`} className="s-name" style={{ color: 'var(--brand-deep)', textDecoration: 'none', fontWeight: 600 }}>{s.title}</Link>
+                  </td>
                   <td data-label="Ruta"><span className="s-route">/{s.slug}</span></td>
                   <td className="c-num" data-label="Preguntas">{qm[s.id] ?? 0}</td>
                   <td className="c-num" data-label="Respuestas">{rm[s.id] ?? 0}</td>
@@ -75,7 +76,7 @@ export default async function EncuestasPage() {
                     <span className={`s-badge${s.isActive ? ' on' : ''}`}>{s.isActive ? 'Activa' : 'Inactiva'}</span>
                   </td>
                   <td className="c-act">
-                    <RowActions survey={s} baseUrl={baseUrl} toggleAction={toggleActiveAction} deleteAction={deleteSurveyAction} />
+                    <RowActions survey={s} toggleAction={toggleActiveAction} deleteAction={deleteSurveyAction} />
                   </td>
                 </tr>
               ))}
