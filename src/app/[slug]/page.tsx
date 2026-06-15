@@ -42,7 +42,7 @@ export default async function SurveyPage({ params }: Props) {
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
-            <Image src="/qhogar-logo.svg" alt="QHogar" width={116} height={53} priority style={{ width: 116, height: 'auto' }} />
+            <Image src="/agencies/angelpinto.png" alt="Angel Pinto" width={125} height={53} priority style={{ width: 'auto', height: 53 }} />
           </div>
           <span className="tag">Validación de producto · 2026</span>
         </div>
