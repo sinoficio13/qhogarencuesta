@@ -59,3 +59,42 @@ export function nextPosition(existingPositions: number[]): number {
   if (existingPositions.length === 0) return 10
   return Math.max(...existingPositions) + 10
 }
+
+// ── Watermark (marca de agua por encuesta) ──────────────────────────────────────
+
+export const WATERMARK_STYLE_VALUES = ['none', 'centered', 'tiled', 'corner'] as const
+export type WatermarkStyleValue = (typeof WATERMARK_STYLE_VALUES)[number]
+
+/** True si el valor es un patrón de marca de agua válido. */
+export function isWatermarkStyle(value: unknown): value is WatermarkStyleValue {
+  return (
+    typeof value === 'string' &&
+    (WATERMARK_STYLE_VALUES as readonly string[]).includes(value)
+  )
+}
+
+/** Tipos de imagen aceptados para la marca de agua. SVG queda excluido a propósito (XSS). */
+export const WATERMARK_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const
+export const WATERMARK_MAX_BYTES = 2 * 1024 * 1024 // 2 MB
+
+export interface ImageMeta {
+  type: string
+  size: number
+}
+
+/**
+ * Valida tipo y tamaño de un archivo de imagen para marca de agua. Puro:
+ * el caller extrae {type, size} del File antes de llamar.
+ */
+export function validateWatermarkImage(meta: ImageMeta): GuardResult {
+  if (!(WATERMARK_ALLOWED_TYPES as readonly string[]).includes(meta.type)) {
+    return { ok: false, error: 'Formato no permitido. Usá PNG, JPG o WebP.' }
+  }
+  if (meta.size <= 0) {
+    return { ok: false, error: 'El archivo está vacío.' }
+  }
+  if (meta.size > WATERMARK_MAX_BYTES) {
+    return { ok: false, error: 'La imagen supera el máximo de 2 MB.' }
+  }
+  return { ok: true }
+}

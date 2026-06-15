@@ -3,6 +3,16 @@
  * PURE — no DB imports, no framework deps.
  */
 
+/** Patrón de marca de agua por encuesta. Fuente de verdad del tipo (capa lib). */
+export type WatermarkStyle = 'none' | 'centered' | 'tiled' | 'corner'
+
+/** Coacciona un valor crudo de DB a un WatermarkStyle válido (default 'none'). */
+export function normalizeWatermarkStyle(value: string | null | undefined): WatermarkStyle {
+  return value === 'centered' || value === 'tiled' || value === 'corner'
+    ? value
+    : 'none'
+}
+
 // ── DB row types (mirror schema, no Drizzle inference dependency) ─────────────
 
 export interface DbOption {
@@ -34,6 +44,13 @@ export interface DbQuestion {
   scaleRows: DbScaleRow[]
 }
 
+export interface DbAgency {
+  id: string
+  slug: string
+  name: string
+  logo: string
+}
+
 export interface SurveyDbRow {
   id: string
   slug: string
@@ -45,6 +62,11 @@ export interface SurveyDbRow {
   // PIVOT dedup fields
   identifierType: string | null
   identifierLabel: string | null
+  // Agencia de campo (co-branding). null cuando la encuesta no tiene agencia.
+  agency?: DbAgency | null
+  // Marca de agua por encuesta
+  watermarkImage?: string | null
+  watermarkStyle?: string | null
   questions: DbQuestion[]
 }
 
@@ -75,6 +97,11 @@ export interface QuestionView {
   scaleRows?: ScaleRowView[]
 }
 
+export interface AgencyView {
+  name: string
+  logo: string
+}
+
 export interface SurveyView {
   id: string
   slug: string
@@ -86,6 +113,12 @@ export interface SurveyView {
   identifierType: 'email' | 'cedula'
   /** Optional custom label for the identifier field shown in the form */
   identifierLabel: string | null
+  /** Agencia de campo para co-branding; null si la encuesta no tiene agencia */
+  agency: AgencyView | null
+  /** URL de la imagen de marca de agua; null si no hay */
+  watermarkImage: string | null
+  /** Patrón de marca de agua; 'none' si no se muestra */
+  watermarkStyle: WatermarkStyle
   questions: QuestionView[]
 }
 
@@ -137,6 +170,9 @@ export function toSurveyView(row: SurveyDbRow | null): SurveyView | null {
     noteHtml: row.noteHtml,
     identifierType: (row.identifierType === 'cedula' ? 'cedula' : 'email') as 'email' | 'cedula',
     identifierLabel: row.identifierLabel ?? null,
+    agency: row.agency ? { name: row.agency.name, logo: row.agency.logo } : null,
+    watermarkImage: row.watermarkImage ?? null,
+    watermarkStyle: normalizeWatermarkStyle(row.watermarkStyle),
     questions,
   }
 }

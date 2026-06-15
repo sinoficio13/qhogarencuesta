@@ -5,13 +5,14 @@
  */
 import Link from 'next/link'
 
-type Tab = 'edit' | 'preview' | 'responses' | 'share'
+type Tab = 'edit' | 'preview' | 'responses' | 'share' | 'settings'
 
 const TABS: { key: Tab; label: string; path: (id: string) => string }[] = [
   { key: 'edit', label: 'Editar preguntas', path: (id) => `/admin/${id}` },
   { key: 'preview', label: 'Vista previa', path: (id) => `/admin/${id}/preview` },
   { key: 'responses', label: 'Resultados', path: (id) => `/admin/${id}/responses` },
   { key: 'share', label: 'Compartir', path: (id) => `/admin/${id}/links` },
+  { key: 'settings', label: 'Ajustes', path: (id) => `/admin/${id}/ajustes` },
 ]
 
 export default function SurveyNav({

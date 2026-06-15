@@ -59,6 +59,15 @@ export const surveys = pgTable('surveys', {
   identifierLabel: text('identifier_label'), // nullable — custom label shown in form
   // Agencia que realiza la encuesta (co-branding). Nullable: no toda encuesta tiene una.
   agencyId: uuid('agency_id').references(() => agencies.id, { onDelete: 'set null' }),
+  // Marca de agua POR ENCUESTA (independiente del logo de la agencia).
+  // watermarkImage: URL de Vercel Blob; null = sin imagen.
+  watermarkImage: text('watermark_image'),
+  // watermarkStyle: cómo se aplica la imagen. 'none' = no se muestra.
+  watermarkStyle: text('watermark_style', {
+    enum: ['none', 'centered', 'tiled', 'corner'],
+  })
+    .notNull()
+    .default('none'),
 })
 
 // ─── questions ────────────────────────────────────────────────────────────────

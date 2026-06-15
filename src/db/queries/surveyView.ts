@@ -19,6 +19,7 @@ export async function getSurveyView(slug: string): Promise<SurveyView | null> {
   const row = await db.query.surveys.findFirst({
     where: eq(surveys.slug, slug),
     with: {
+      agency: true,
       questions: {
         orderBy: (questions, { asc }) => [asc(questions.position)],
         with: {
@@ -47,6 +48,7 @@ export async function getSurveyViewById(id: string): Promise<SurveyView | null> 
   const row = await db.query.surveys.findFirst({
     where: eq(surveys.id, id),
     with: {
+      agency: true,
       questions: {
         orderBy: (questions, { asc }) => [asc(questions.position)],
         with: {

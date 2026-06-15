@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getSurveyView } from '@/db/queries/surveyView'
 import { SurveyForm } from '@/components/survey/SurveyForm'
+import { Watermark } from '@/components/survey/Watermark'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,13 +49,22 @@ export default async function SurveyPage({ params }: Props) {
         </div>
       </header>
 
-      <div className="wrap" style={{ paddingTop: '32px' }}>
-        <SurveyForm view={view} />
+      <div className="wrap" style={{ paddingTop: '32px', position: 'relative' }}>
+        <Watermark image={view.watermarkImage} style={view.watermarkStyle} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <SurveyForm view={view} />
+        </div>
       </div>
 
       <footer className="site">
-        QHogar · Encuesta de parte de <strong>Angel Pinto</strong>. Los datos
-        son recogidos por QHogar para investigación de mercado interna.
+        Encuesta de QHogar
+        {view.agency ? (
+          <>
+            {' '}realizada a través de <strong>{view.agency.name}</strong>
+          </>
+        ) : null}
+        . Los datos son recogidos por QHogar para investigación de mercado
+        interna.
       </footer>
     </>
   )
