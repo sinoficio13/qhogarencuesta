@@ -186,7 +186,7 @@ export const answers = pgTable(
       .references(() => responses.id, { onDelete: 'cascade' }),
     questionId: uuid('question_id')
       .notNull()
-      .references(() => questions.id),
+      .references(() => questions.id, { onDelete: 'cascade' }),
     optionIds: uuid('option_ids').array(), // single/multi
     scaleValues: jsonb('scale_values').$type<Record<string, number>>(), // {rowId: 1..5}
     textValue: text('text_value'), // open

@@ -78,7 +78,18 @@ async function deleteQuestionAction(formData: FormData) {
   'use server'
   const id = formData.get('id') as string
   const surveyId = formData.get('surveyId') as string
-  await deleteQuestion({ id })
+  try {
+    const result = await deleteQuestion({ id })
+    if (!result.ok) {
+      console.error('deleteQuestion failed:', result.errors)
+    }
+  } catch (err) {
+    // DB-level failure (e.g. FK constraint). Log and fall through to redirect
+    // so the editor reloads instead of crashing the whole page.
+    // redirect() MUST stay outside this try: it throws NEXT_REDIRECT and the
+    // catch would otherwise swallow the navigation signal.
+    console.error('deleteQuestion threw:', err)
+  }
   redirect(`/admin/${surveyId}`)
 }
 
