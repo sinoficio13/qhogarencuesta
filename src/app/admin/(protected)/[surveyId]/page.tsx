@@ -14,7 +14,7 @@
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { db } from '@/db'
 import { surveys, questions, options, scaleRows } from '@/db/schema'
-import { eq, asc } from 'drizzle-orm'
+import { eq, asc, inArray } from 'drizzle-orm'
 import { notFound, redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import {
@@ -185,24 +185,31 @@ export default async function QuestionEditorPage({
 
   const allIds = questionList.map((q) => q.id)
 
-  // Load options and scale rows for all questions
+  // Load ALL options and scale rows for this survey in 2 queries (en paralelo) y
+  // agrupar en memoria por questionId. Antes esto era un N+1 serial: una query por
+  // pregunta dentro de un for con await → lentísimo con muchas preguntas + cold start
+  // de Neon. Ahora son 2 round-trips constantes sin importar cuántas preguntas haya.
   const optionMap: Record<string, (typeof options.$inferSelect)[]> = {}
   const scaleRowMap: Record<string, (typeof scaleRows.$inferSelect)[]> = {}
 
-  for (const q of questionList) {
-    if (q.type === 'single' || q.type === 'multi') {
-      optionMap[q.id] = await db
+  if (allIds.length > 0) {
+    const [allOptions, allScaleRows] = await Promise.all([
+      db
         .select()
         .from(options)
-        .where(eq(options.questionId, q.id))
-        .orderBy(asc(options.position))
-    }
-    if (q.type === 'scale') {
-      scaleRowMap[q.id] = await db
+        .where(inArray(options.questionId, allIds))
+        .orderBy(asc(options.position)),
+      db
         .select()
         .from(scaleRows)
-        .where(eq(scaleRows.questionId, q.id))
-        .orderBy(asc(scaleRows.position))
+        .where(inArray(scaleRows.questionId, allIds))
+        .orderBy(asc(scaleRows.position)),
+    ])
+    for (const opt of allOptions) {
+      ;(optionMap[opt.questionId] ??= []).push(opt)
+    }
+    for (const sr of allScaleRows) {
+      ;(scaleRowMap[sr.questionId] ??= []).push(sr)
     }
   }
 
