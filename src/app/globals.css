@@ -200,11 +200,11 @@ body{
   color:var(--muted-2);border:1px solid var(--line);padding:2px 7px;border-radius:6px;
 }
 
-textarea{
+.panel textarea{
   width:100%;margin-left:0;border:1px solid var(--line);border-radius:12px;
   padding:14px 16px;font-family:var(--font-body);font-size:15.5px;line-height:1.5;color:var(--ink);resize:vertical;min-height:96px;background:#fff;
 }
-textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #DDE7F3}
+.panel textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px #DDE7F3}
 
 /* footer / submit */
 .panel-foot{padding:21px 21px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -238,7 +238,7 @@ footer.site{max-width:1080px;margin:0 auto;padding:10px 21px 48px;color:var(--mu
   .q-hint{margin-left:50px}
   .opts{gap:9px}
   .opt-row input{width:18px;height:18px}
-  textarea{width:calc(100% - 50px);margin-left:50px}
+  .panel textarea{width:calc(100% - 50px);margin-left:50px}
   .scale-row{grid-template-columns:1fr auto;gap:14px;padding:11px 15px}
   .dots{justify-content:flex-start;gap:6px}
   .dot,.dot-btn{flex:none;width:34px;height:34px;font-size:13px;border-radius:8px}
