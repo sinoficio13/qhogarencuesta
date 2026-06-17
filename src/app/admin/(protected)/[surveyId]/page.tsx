@@ -452,26 +452,26 @@ export default async function QuestionEditorPage({
                             <option value="false">Normal</option>
                             <option value="true">Control</option>
                           </select>
-                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 12, color: 'var(--brand-deep)' }} aria-label="Guardar opción">✓</button>
+                          <button type="submit" style={{ ...iconBtnStyle, color: 'var(--brand-deep)' }} aria-label="Guardar opción">✓</button>
                         </form>
                         <form action={moveOptionUpAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
                           <input type="hidden" name="optionId" value={opt.id} />
                           <input type="hidden" name="allIds" value={optArr.map((o) => o.id).join(',')} />
-                          <button type="submit" disabled={optIdx === 0} style={{ ...iconBtnStyle, fontSize: 11, opacity: optIdx === 0 ? 0.3 : 1 }}>↑</button>
+                          <button type="submit" disabled={optIdx === 0} style={{ ...iconBtnStyle, opacity: optIdx === 0 ? 0.3 : 1 }}>↑</button>
                         </form>
                         <form action={moveOptionDownAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
                           <input type="hidden" name="optionId" value={opt.id} />
                           <input type="hidden" name="allIds" value={optArr.map((o) => o.id).join(',')} />
-                          <button type="submit" disabled={optIdx === optArr.length - 1} style={{ ...iconBtnStyle, fontSize: 11, opacity: optIdx === optArr.length - 1 ? 0.3 : 1 }}>↓</button>
+                          <button type="submit" disabled={optIdx === optArr.length - 1} style={{ ...iconBtnStyle, opacity: optIdx === optArr.length - 1 ? 0.3 : 1 }}>↓</button>
                         </form>
                         <form action={removeOptionAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="id" value={opt.id} />
                           <input type="hidden" name="surveyId" value={surveyId} />
-                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 11, color: '#c0392b' }}>✕</button>
+                          <button type="submit" style={{ ...iconBtnStyle, color: '#c0392b' }}>✕</button>
                         </form>
                       </div>
                     ))}
@@ -506,26 +506,26 @@ export default async function QuestionEditorPage({
                           <input type="hidden" name="id" value={sr.id} />
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input name="labelHtml" defaultValue={sr.labelHtml} required style={{ ...inputStyle, flex: 1, padding: '7px 10px', fontSize: 14 }} />
-                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 12, color: 'var(--brand-deep)' }} aria-label="Guardar fila">✓</button>
+                          <button type="submit" style={{ ...iconBtnStyle, color: 'var(--brand-deep)' }} aria-label="Guardar fila">✓</button>
                         </form>
                         <form action={moveScaleRowUpAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
                           <input type="hidden" name="scaleRowId" value={sr.id} />
                           <input type="hidden" name="allIds" value={srArr.map((s) => s.id).join(',')} />
-                          <button type="submit" disabled={srIdx === 0} style={{ ...iconBtnStyle, fontSize: 11, opacity: srIdx === 0 ? 0.3 : 1 }}>↑</button>
+                          <button type="submit" disabled={srIdx === 0} style={{ ...iconBtnStyle, opacity: srIdx === 0 ? 0.3 : 1 }}>↑</button>
                         </form>
                         <form action={moveScaleRowDownAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
                           <input type="hidden" name="scaleRowId" value={sr.id} />
                           <input type="hidden" name="allIds" value={srArr.map((s) => s.id).join(',')} />
-                          <button type="submit" disabled={srIdx === srArr.length - 1} style={{ ...iconBtnStyle, fontSize: 11, opacity: srIdx === srArr.length - 1 ? 0.3 : 1 }}>↓</button>
+                          <button type="submit" disabled={srIdx === srArr.length - 1} style={{ ...iconBtnStyle, opacity: srIdx === srArr.length - 1 ? 0.3 : 1 }}>↓</button>
                         </form>
                         <form action={removeScaleRowAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="id" value={sr.id} />
                           <input type="hidden" name="surveyId" value={surveyId} />
-                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 11, color: '#c0392b' }}>✕</button>
+                          <button type="submit" style={{ ...iconBtnStyle, color: '#c0392b' }}>✕</button>
                         </form>
                       </div>
                     ))}
@@ -559,8 +559,10 @@ const inputStyle: React.CSSProperties = {
 }
 
 const iconBtnStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-mono)', fontSize: 13, background: 'transparent', border: '1px solid var(--line)',
-  borderRadius: 7, padding: '3px 8px', cursor: 'pointer', color: 'var(--muted)', lineHeight: 1.4,
+  fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 700, background: '#fff',
+  border: '1px solid var(--line)', borderRadius: 8, cursor: 'pointer', color: 'var(--ink)',
+  lineHeight: 1, width: 30, height: 30, padding: 0, flex: 'none',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
 }
 
 const saveBtnStyle: React.CSSProperties = {
