@@ -143,6 +143,17 @@ async function removeOptionAction(formData: FormData) {
   redirect(`/admin/${surveyId}`)
 }
 
+async function updateOptionAction(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  const surveyId = formData.get('surveyId') as string
+  const text = (formData.get('text') as string).trim()
+  const isControl = formData.get('isControl') === 'true'
+  const result = await updateOption({ id, text, isControl })
+  if (!result.ok) console.error('updateOption failed:', result.errors)
+  redirect(`/admin/${surveyId}`)
+}
+
 async function moveOptionUpAction(formData: FormData) {
   'use server'
   const surveyId = formData.get('surveyId') as string
@@ -187,6 +198,16 @@ async function removeScaleRowAction(formData: FormData) {
   const id = formData.get('id') as string
   const surveyId = formData.get('surveyId') as string
   await removeScaleRow({ id })
+  redirect(`/admin/${surveyId}`)
+}
+
+async function updateScaleRowAction(formData: FormData) {
+  'use server'
+  const id = formData.get('id') as string
+  const surveyId = formData.get('surveyId') as string
+  const labelHtml = (formData.get('labelHtml') as string).trim()
+  const result = await updateScaleRow({ id, labelHtml })
+  if (!result.ok) console.error('updateScaleRow failed:', result.errors)
   redirect(`/admin/${surveyId}`)
 }
 
@@ -423,14 +444,16 @@ export default async function QuestionEditorPage({
                           borderStyle: opt.isControl ? 'dashed' : 'solid',
                         }}
                       >
-                        <span style={{ flex: 1, fontSize: 14, color: opt.isControl ? 'var(--muted)' : 'var(--ink)' }}>
-                          {opt.text}
-                          {opt.isControl && (
-                            <span style={{ marginLeft: 8, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted-2)', border: '1px solid var(--line)', padding: '1px 5px', borderRadius: 4 }}>
-                              control
-                            </span>
-                          )}
-                        </span>
+                        <form action={updateOptionAction} style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <input type="hidden" name="id" value={opt.id} />
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input name="text" defaultValue={opt.text} required style={{ ...inputStyle, flex: 1, padding: '7px 10px', fontSize: 14 }} />
+                          <select name="isControl" defaultValue={String(opt.isControl)} style={{ ...inputStyle, width: 'auto', padding: '7px 10px', fontSize: 13 }}>
+                            <option value="false">Normal</option>
+                            <option value="true">Control</option>
+                          </select>
+                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 12, color: 'var(--brand-deep)' }} aria-label="Guardar opción">✓</button>
+                        </form>
                         <form action={moveOptionUpAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
@@ -479,7 +502,12 @@ export default async function QuestionEditorPage({
                         key={sr.id}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 10, background: '#fff' }}
                       >
-                        <span style={{ flex: 1, fontSize: 14 }} dangerouslySetInnerHTML={{ __html: sr.labelHtml }} />
+                        <form action={updateScaleRowAction} style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <input type="hidden" name="id" value={sr.id} />
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input name="labelHtml" defaultValue={sr.labelHtml} required style={{ ...inputStyle, flex: 1, padding: '7px 10px', fontSize: 14 }} />
+                          <button type="submit" style={{ ...iconBtnStyle, fontSize: 12, color: 'var(--brand-deep)' }} aria-label="Guardar fila">✓</button>
+                        </form>
                         <form action={moveScaleRowUpAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="surveyId" value={surveyId} />
                           <input type="hidden" name="questionId" value={q.id} />
