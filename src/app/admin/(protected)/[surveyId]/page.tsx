@@ -25,9 +25,11 @@ import {
   addOption,
   updateOption,
   removeOption,
+  reorderOptions,
   addScaleRow,
   updateScaleRow,
   removeScaleRow,
+  reorderScaleRows,
 } from '@/actions/adminQuestions'
 import AddQuestionForm from './AddQuestionForm'
 import SurveyNav from './SurveyNav'
@@ -141,6 +143,36 @@ async function removeOptionAction(formData: FormData) {
   redirect(`/admin/${surveyId}`)
 }
 
+async function moveOptionUpAction(formData: FormData) {
+  'use server'
+  const surveyId = formData.get('surveyId') as string
+  const questionId = formData.get('questionId') as string
+  const optionId = formData.get('optionId') as string
+  const allIds = (formData.get('allIds') as string).split(',')
+  const idx = allIds.indexOf(optionId)
+  if (idx > 0) {
+    const newOrder = [...allIds]
+    ;[newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]]
+    await reorderOptions({ questionId, orderedIds: newOrder })
+  }
+  revalidatePath(`/admin/${surveyId}`)
+}
+
+async function moveOptionDownAction(formData: FormData) {
+  'use server'
+  const surveyId = formData.get('surveyId') as string
+  const questionId = formData.get('questionId') as string
+  const optionId = formData.get('optionId') as string
+  const allIds = (formData.get('allIds') as string).split(',')
+  const idx = allIds.indexOf(optionId)
+  if (idx > -1 && idx < allIds.length - 1) {
+    const newOrder = [...allIds]
+    ;[newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]]
+    await reorderOptions({ questionId, orderedIds: newOrder })
+  }
+  revalidatePath(`/admin/${surveyId}`)
+}
+
 async function addScaleRowAction(formData: FormData) {
   'use server'
   const questionId = formData.get('questionId') as string
@@ -156,6 +188,36 @@ async function removeScaleRowAction(formData: FormData) {
   const surveyId = formData.get('surveyId') as string
   await removeScaleRow({ id })
   redirect(`/admin/${surveyId}`)
+}
+
+async function moveScaleRowUpAction(formData: FormData) {
+  'use server'
+  const surveyId = formData.get('surveyId') as string
+  const questionId = formData.get('questionId') as string
+  const scaleRowId = formData.get('scaleRowId') as string
+  const allIds = (formData.get('allIds') as string).split(',')
+  const idx = allIds.indexOf(scaleRowId)
+  if (idx > 0) {
+    const newOrder = [...allIds]
+    ;[newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]]
+    await reorderScaleRows({ questionId, orderedIds: newOrder })
+  }
+  revalidatePath(`/admin/${surveyId}`)
+}
+
+async function moveScaleRowDownAction(formData: FormData) {
+  'use server'
+  const surveyId = formData.get('surveyId') as string
+  const questionId = formData.get('questionId') as string
+  const scaleRowId = formData.get('scaleRowId') as string
+  const allIds = (formData.get('allIds') as string).split(',')
+  const idx = allIds.indexOf(scaleRowId)
+  if (idx > -1 && idx < allIds.length - 1) {
+    const newOrder = [...allIds]
+    ;[newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]]
+    await reorderScaleRows({ questionId, orderedIds: newOrder })
+  }
+  revalidatePath(`/admin/${surveyId}`)
 }
 
 // ── Page component ─────────────────────────────────────────────────────────────
@@ -347,7 +409,7 @@ export default async function QuestionEditorPage({
                     Opciones ({optionMap[q.id]?.length ?? 0})
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-                    {(optionMap[q.id] ?? []).map((opt) => (
+                    {(optionMap[q.id] ?? []).map((opt, optIdx, optArr) => (
                       <div
                         key={opt.id}
                         style={{
@@ -369,6 +431,20 @@ export default async function QuestionEditorPage({
                             </span>
                           )}
                         </span>
+                        <form action={moveOptionUpAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input type="hidden" name="questionId" value={q.id} />
+                          <input type="hidden" name="optionId" value={opt.id} />
+                          <input type="hidden" name="allIds" value={optArr.map((o) => o.id).join(',')} />
+                          <button type="submit" disabled={optIdx === 0} style={{ ...iconBtnStyle, fontSize: 11, opacity: optIdx === 0 ? 0.3 : 1 }}>↑</button>
+                        </form>
+                        <form action={moveOptionDownAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input type="hidden" name="questionId" value={q.id} />
+                          <input type="hidden" name="optionId" value={opt.id} />
+                          <input type="hidden" name="allIds" value={optArr.map((o) => o.id).join(',')} />
+                          <button type="submit" disabled={optIdx === optArr.length - 1} style={{ ...iconBtnStyle, fontSize: 11, opacity: optIdx === optArr.length - 1 ? 0.3 : 1 }}>↓</button>
+                        </form>
                         <form action={removeOptionAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="id" value={opt.id} />
                           <input type="hidden" name="surveyId" value={surveyId} />
@@ -398,12 +474,26 @@ export default async function QuestionEditorPage({
                     Filas de escala ({scaleRowMap[q.id]?.length ?? 0})
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-                    {(scaleRowMap[q.id] ?? []).map((sr) => (
+                    {(scaleRowMap[q.id] ?? []).map((sr, srIdx, srArr) => (
                       <div
                         key={sr.id}
                         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 10, background: '#fff' }}
                       >
                         <span style={{ flex: 1, fontSize: 14 }} dangerouslySetInnerHTML={{ __html: sr.labelHtml }} />
+                        <form action={moveScaleRowUpAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input type="hidden" name="questionId" value={q.id} />
+                          <input type="hidden" name="scaleRowId" value={sr.id} />
+                          <input type="hidden" name="allIds" value={srArr.map((s) => s.id).join(',')} />
+                          <button type="submit" disabled={srIdx === 0} style={{ ...iconBtnStyle, fontSize: 11, opacity: srIdx === 0 ? 0.3 : 1 }}>↑</button>
+                        </form>
+                        <form action={moveScaleRowDownAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="surveyId" value={surveyId} />
+                          <input type="hidden" name="questionId" value={q.id} />
+                          <input type="hidden" name="scaleRowId" value={sr.id} />
+                          <input type="hidden" name="allIds" value={srArr.map((s) => s.id).join(',')} />
+                          <button type="submit" disabled={srIdx === srArr.length - 1} style={{ ...iconBtnStyle, fontSize: 11, opacity: srIdx === srArr.length - 1 ? 0.3 : 1 }}>↓</button>
+                        </form>
                         <form action={removeScaleRowAction} style={{ display: 'inline' }}>
                           <input type="hidden" name="id" value={sr.id} />
                           <input type="hidden" name="surveyId" value={surveyId} />
