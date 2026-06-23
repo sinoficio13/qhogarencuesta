@@ -139,11 +139,16 @@ export default async function SurveyResults({ surveyId, showExport = true }: { s
                     const texts = qAnswers.map((a) => a.textValue).filter(Boolean) as string[]
                     if (texts.length === 0) return <p style={{ color: 'var(--muted)', fontSize: 13 }}>Sin respuestas de texto.</p>
                     return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {texts.map((t, i) => (
-                          <div key={i} style={{ padding: '10px 14px', border: '1px solid var(--line)', borderRadius: 10, background: '#fff', fontSize: 14, color: 'var(--ink)', lineHeight: 1.5 }}>{t}</div>
-                        ))}
-                      </div>
+                      <details>
+                        <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', userSelect: 'none' }}>
+                          Ver {texts.length} respuesta{texts.length !== 1 ? 's' : ''} de texto
+                        </summary>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                          {texts.map((t, i) => (
+                            <div key={i} style={{ padding: '10px 14px', border: '1px solid var(--line)', borderRadius: 10, background: '#fff', fontSize: 14, color: 'var(--ink)', lineHeight: 1.5 }}>{t}</div>
+                          ))}
+                        </div>
+                      </details>
                     )
                   })()}
                 </div>
