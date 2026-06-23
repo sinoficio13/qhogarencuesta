@@ -11,7 +11,7 @@ import { db } from '@/db'
 import { surveys, questions, options, scaleRows, responses, answers } from '@/db/schema'
 import { eq, asc, count } from 'drizzle-orm'
 
-export default async function SurveyResults({ surveyId }: { surveyId: string }) {
+export default async function SurveyResults({ surveyId, showExport = true }: { surveyId: string; showExport?: boolean }) {
   const [survey] = await db
     .select({ id: surveys.id })
     .from(surveys)
@@ -61,9 +61,11 @@ export default async function SurveyResults({ surveyId }: { surveyId: string }) 
             respuesta{total !== 1 ? 's' : ''} totales
           </span>
         </div>
-        <a href={`/admin/${surveyId}/export`} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', textDecoration: 'none', border: '1px solid #CEDBEA', background: '#E9EFF6', borderRadius: 8, padding: '8px 12px' }}>
-          ↓ Exportar CSV
-        </a>
+        {showExport && (
+          <a href={`/admin/${surveyId}/export`} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--brand-deep)', textDecoration: 'none', border: '1px solid #CEDBEA', background: '#E9EFF6', borderRadius: 8, padding: '8px 12px' }}>
+            ↓ Exportar CSV
+          </a>
+        )}
       </div>
 
       {total === 0 ? (
